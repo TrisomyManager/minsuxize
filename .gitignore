@@ -10,3 +10,4 @@ src/*/App_Data/
 *.db
 *.db-shm
 *.db-wal
+*.user
