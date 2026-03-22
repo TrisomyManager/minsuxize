@@ -1,0 +1,87 @@
+@model MinsuXize.Web.ViewModels.RegionDetailsViewModel
+@{
+    ViewData["Title"] = Model.Region.Name;
+}
+
+<section class="page-header">
+    <span class="eyebrow">@Model.Region.Type</span>
+    <h1>@Model.Region.Name</h1>
+    <p>@Model.Region.Summary</p>
+    <p class="muted">@Model.Region.FullPath</p>
+    @if (Model.DescendantRegionCount > 0)
+    {
+        <p class="muted">该目录下还包含 @Model.DescendantRegionCount 个下级行政区划节点，条目列表会一并聚合显示。</p>
+    }
+</section>
+
+<section class="content-section two-column">
+    <article class="panel-card">
+        <h2>文化焦点</h2>
+        <p>@Model.Region.CulturalFocus</p>
+        <div class="pill-grid">
+            @foreach (var item in Model.Region.Highlights)
+            {
+                <span class="pill">@item</span>
+            }
+        </div>
+        @if (Model.ParentRegion is not null)
+        {
+            <p class="muted">
+                上级地区：
+                <a asp-action="Details" asp-route-id="@Model.ParentRegion.Id">@Model.ParentRegion.Name</a>
+            </p>
+        }
+    </article>
+
+    <article class="panel-card">
+        <h2>下级地区</h2>
+        @if (Model.ChildRegions.Count == 0)
+        {
+            <p class="muted">当前原型中，这里还没有继续下钻的地区数据。</p>
+        }
+        else
+        {
+            <div class="list-stack">
+                @foreach (var child in Model.ChildRegions)
+                {
+                    <a class="list-card" asp-action="Details" asp-route-id="@child.Id">
+                        <div>
+                            <strong>@child.Name</strong>
+                            <span>@child.Type</span>
+                        </div>
+                        <p>@child.Summary</p>
+                    </a>
+                }
+            </div>
+        }
+    </article>
+</section>
+
+<section class="content-section">
+    <div class="section-heading">
+        <h2>本地区及下级地区已收录条目</h2>
+        <p>点击上级地区时，也会自动带出其下级行政区划中已经收录的民俗细则。</p>
+    </div>
+    @if (Model.Entries.Count == 0)
+    {
+        <div class="empty-state">
+            <p>当前地区还没有录入条目，可以先发起投稿。</p>
+            <a class="button-secondary" asp-controller="Submit" asp-action="Create">提交本地区民俗</a>
+        </div>
+    }
+    else
+    {
+        <div class="card-grid">
+            @foreach (var entry in Model.Entries)
+            {
+                <article class="info-card">
+                    <span class="tag">民俗条目</span>
+                    <h3>@entry.Title</h3>
+                    <p>@entry.Summary</p>
+                    <p class="muted">@entry.InheritanceStatus</p>
+                    <a asp-controller="Entries" asp-action="Details" asp-route-id="@entry.Id">查看条目</a>
+                </article>
+            }
+        </div>
+    }
+</section>

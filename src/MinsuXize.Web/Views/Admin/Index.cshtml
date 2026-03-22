@@ -1,0 +1,44 @@
+@model MinsuXize.Web.ViewModels.AdminDashboardViewModel
+@{
+    ViewData["Title"] = "审核台";
+}
+
+<section class="page-header">
+    <span class="eyebrow">审核工作台</span>
+    <h1>待审核与已处理投稿</h1>
+    <p>原型中的审核台用最简单的状态流转展示“投稿 - 审核 - 发布准备”的核心闭环。</p>
+</section>
+
+<section class="admin-grid">
+    @foreach (var item in Model.Submissions)
+    {
+        var region = Model.RegionsById[item.RegionId];
+        var festival = Model.FestivalsById[item.FestivalId];
+
+        <article class="panel-card">
+            <div class="submission-header">
+                <div>
+                    <span class="tag">@item.Status</span>
+                    <h2>@item.Title</h2>
+                </div>
+                <span class="muted">#@item.Id</span>
+            </div>
+
+            <p>@item.Summary</p>
+            <p class="muted">@region.FullPath</p>
+            <p class="muted">@festival.Name</p>
+            <p class="muted">来源说明：@item.SourceSummary</p>
+
+            <form asp-action="Review" method="post" class="review-form">
+                <input type="hidden" name="id" value="@item.Id" />
+                <label class="field-label" for="reviewerNote-@item.Id">审核意见</label>
+                <textarea id="reviewerNote-@item.Id" name="reviewerNote" rows="3" class="field-input">@item.ReviewerNote</textarea>
+                <div class="review-actions">
+                    <button type="submit" class="button-secondary" name="status" value="@MinsuXize.Web.Models.SubmissionStatus.NeedsRevision">退回修改</button>
+                    <button type="submit" class="button-secondary" name="status" value="@MinsuXize.Web.Models.SubmissionStatus.Rejected">驳回</button>
+                    <button type="submit" class="button-primary" name="status" value="@MinsuXize.Web.Models.SubmissionStatus.Approved">通过</button>
+                </div>
+            </form>
+        </article>
+    }
+</section>

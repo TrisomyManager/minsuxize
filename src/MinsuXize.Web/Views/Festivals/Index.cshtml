@@ -1,0 +1,29 @@
+@model IReadOnlyList<MinsuXize.Web.Models.Festival>
+@{
+    ViewData["Title"] = "节日";
+}
+
+<section class="page-header">
+    <span class="eyebrow">节日浏览</span>
+    <h1>按农历时间节点组织民俗内容</h1>
+    <p>除了春节、中元、清明，也要支持腊月祭灶、节气和地方性岁时节点。</p>
+</section>
+
+<section class="card-grid">
+    @foreach (var festival in Model)
+    {
+        <article class="info-card">
+            <span class="tag">@festival.Category</span>
+            <h2>@festival.Name</h2>
+            <p>@festival.Summary</p>
+            <p class="muted">@festival.LunarLabel</p>
+            <div class="pill-grid">
+                @foreach (var topic in festival.CoreTopics)
+                {
+                    <span class="pill">@topic</span>
+                }
+            </div>
+            <a asp-action="Details" asp-route-id="@festival.Id">查看节日页</a>
+        </article>
+    }
+</section>

@@ -1,0 +1,72 @@
+@model MinsuXize.Web.ViewModels.EntrySearchViewModel
+@{
+    ViewData["Title"] = "搜索民俗细则";
+}
+
+<section class="page-header">
+    <span class="eyebrow">民俗细则搜索</span>
+    <h1>搜索对应的地方民俗细则</h1>
+    <p>你可以组合地区、节日和关键词来查找具体条目。</p>
+</section>
+
+<section class="form-shell search-results-shell">
+    <form asp-action="Index" method="get" class="entry-form">
+        <div class="search-main-row">
+            <input class="search-keyword-input" type="text" name="keyword" value="@Model.Keyword" placeholder="搜索例如：秦村、祭灶、除夕祭祖、糖瓜、禁忌" />
+            <button type="submit" class="search-submit-button">重新搜索</button>
+        </div>
+        <div class="search-filter-row">
+            <select name="regionId" class="search-select-input">
+                <option value="">不限地区</option>
+                @foreach (var option in Model.RegionOptions)
+                {
+                    <option value="@option.Value" selected="@option.Selected">@option.Text</option>
+                }
+            </select>
+            <select name="festivalId" class="search-select-input">
+                <option value="">不限节日</option>
+                @foreach (var option in Model.FestivalOptions)
+                {
+                    <option value="@option.Value" selected="@option.Selected">@option.Text</option>
+                }
+            </select>
+        </div>
+    </form>
+</section>
+
+<section class="content-section">
+    <div class="section-heading">
+        <h2>搜索结果</h2>
+        <p>共找到 @Model.Entries.Count 条细则。</p>
+        @if (!string.IsNullOrWhiteSpace(Model.SelectedRegionLabel))
+        {
+            <p>当前地区筛选：@Model.SelectedRegionLabel。结果会自动包含该地区下级行政区划中的条目。</p>
+        }
+    </div>
+
+    @if (Model.Entries.Count == 0)
+    {
+        <div class="empty-state">
+            <p>没有找到匹配的细则，可以换个关键词，或者放宽地区、节日筛选。</p>
+        </div>
+    }
+    else
+    {
+        <div class="card-grid">
+            @foreach (var entry in Model.Entries)
+            {
+                var region = Model.RegionsById[entry.RegionId];
+                var festival = Model.FestivalsById[entry.FestivalId];
+
+                <article class="info-card">
+                    <span class="tag">@festival.Name</span>
+                    <h2>@entry.Title</h2>
+                    <p>@entry.Summary</p>
+                    <p class="muted">@region.FullPath</p>
+                    <p class="muted">@entry.InheritanceStatus</p>
+                    <a asp-action="Details" asp-route-id="@entry.Id">查看细则</a>
+                </article>
+            }
+        </div>
+    }
+</section>

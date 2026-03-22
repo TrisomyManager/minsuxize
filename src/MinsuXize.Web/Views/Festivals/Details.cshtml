@@ -1,0 +1,39 @@
+@model MinsuXize.Web.ViewModels.FestivalDetailsViewModel
+@{
+    ViewData["Title"] = Model.Festival.Name;
+}
+
+<section class="page-header">
+    <span class="eyebrow">@Model.Festival.Category</span>
+    <h1>@Model.Festival.Name</h1>
+    <p>@Model.Festival.Summary</p>
+    <p class="muted">@Model.Festival.LunarLabel</p>
+</section>
+
+<section class="content-section">
+    <div class="pill-grid">
+        @foreach (var topic in Model.Festival.CoreTopics)
+        {
+            <span class="pill">@topic</span>
+        }
+    </div>
+</section>
+
+<section class="content-section">
+    <div class="section-heading">
+        <h2>关联条目</h2>
+        <p>这里展示同一节日在不同地区的记录，方便以后横向对照。</p>
+    </div>
+    <div class="card-grid">
+        @foreach (var entry in Model.Entries)
+        {
+            <article class="info-card">
+                <span class="tag">民俗条目</span>
+                <h3>@entry.Title</h3>
+                <p>@entry.Summary</p>
+                <p class="muted">@entry.InheritanceStatus</p>
+                <a asp-controller="Entries" asp-action="Details" asp-route-id="@entry.Id">查看条目</a>
+            </article>
+        }
+    </div>
+</section>

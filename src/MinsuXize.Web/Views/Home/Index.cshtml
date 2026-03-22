@@ -1,0 +1,117 @@
+@model MinsuXize.Web.ViewModels.HomePageViewModel
+@{
+    ViewData["Title"] = "中国民俗细则";
+}
+
+<section class="search-hero">
+    <div class="search-hero-inner">
+        <span class="eyebrow">中国民俗细则检索</span>
+        <h1>按地方、节日、关键词，直接找到对应的民俗细则。</h1>
+        <p class="hero-lead">
+            先从搜索开始，再进入条目详情查看仪式流程、供品、禁忌、口述内容和来源证据。
+        </p>
+        <p class="hero-lead">
+            地区筛选支持从省、市、县、镇一路向下，选择上级地区时会自动包含下级行政区划中的细则。
+        </p>
+
+        <form asp-controller="Entries" asp-action="Index" method="get" class="search-shell">
+            <div class="search-main-row">
+                <input class="search-keyword-input" type="text" name="keyword" placeholder="搜索例如：秦村、祭灶、除夕祭祖、糖瓜、禁忌" />
+                <button type="submit" class="search-submit-button">搜索细则</button>
+            </div>
+            <div class="search-filter-row">
+                <select name="regionId" class="search-select-input">
+                    <option value="">不限地区</option>
+                    @foreach (var option in Model.RegionOptions)
+                    {
+                        <option value="@option.Value">@option.Text</option>
+                    }
+                </select>
+                <select name="festivalId" class="search-select-input">
+                    <option value="">不限节日</option>
+                    @foreach (var option in Model.FestivalOptions)
+                    {
+                        <option value="@option.Value">@option.Text</option>
+                    }
+                </select>
+            </div>
+        </form>
+
+        <div class="hero-stats-inline">
+            <span>@Model.RegionCount 个地区节点</span>
+            <span>@Model.FestivalCount 个节日节点</span>
+            <span>@Model.EntryCount 条示例细则</span>
+        </div>
+    </div>
+</section>
+
+<section class="content-section">
+    <div class="section-heading">
+        <h2>常用入口</h2>
+        <p>如果你不想直接搜索，也可以从地区、节日或最近收录的细则进入。</p>
+    </div>
+    <div class="pill-grid">
+        <a class="pill" asp-controller="Regions" asp-action="Index">按地区浏览</a>
+        <a class="pill" asp-controller="Festivals" asp-action="Index">按节日浏览</a>
+        <a class="pill" asp-controller="Entries" asp-action="Index">查看全部细则</a>
+        <a class="pill" asp-controller="Submit" asp-action="Create">提交民俗信息</a>
+    </div>
+</section>
+
+<section class="content-section two-column">
+    <div>
+        <div class="section-heading">
+            <h2>示例地区</h2>
+            <p>地区页适合从行政区划一路下钻到乡镇和村落。</p>
+        </div>
+        <div class="list-stack">
+            @foreach (var region in Model.FeaturedRegions)
+            {
+                <a class="list-card" asp-controller="Regions" asp-action="Details" asp-route-id="@region.Id">
+                    <div>
+                        <strong>@region.Name</strong>
+                        <span>@region.Type</span>
+                    </div>
+                    <p>@region.Summary</p>
+                </a>
+            }
+        </div>
+    </div>
+    <div>
+        <div class="section-heading">
+            <h2>热门节日</h2>
+            <p>节日页适合横向比较不同地区在同一节点上的做法差异。</p>
+        </div>
+        <div class="list-stack">
+            @foreach (var festival in Model.FeaturedFestivals)
+            {
+                <a class="list-card" asp-controller="Festivals" asp-action="Details" asp-route-id="@festival.Id">
+                    <div>
+                        <strong>@festival.Name</strong>
+                        <span>@festival.LunarLabel</span>
+                    </div>
+                    <p>@festival.Summary</p>
+                </a>
+            }
+        </div>
+    </div>
+</section>
+
+<section class="content-section">
+    <div class="section-heading">
+        <h2>最近可查看的细则示例</h2>
+        <p>这里展示几条示例细则，正式版本可以换成最新收录或高质量条目。</p>
+    </div>
+    <div class="card-grid">
+        @foreach (var entry in Model.FeaturedEntries)
+        {
+            <article class="info-card">
+                <span class="tag">民俗细则</span>
+                <h3>@entry.Title</h3>
+                <p>@entry.Summary</p>
+                <p class="muted">@entry.InheritanceStatus</p>
+                <a asp-controller="Entries" asp-action="Details" asp-route-id="@entry.Id">查看条目</a>
+            </article>
+        }
+    </div>
+</section>

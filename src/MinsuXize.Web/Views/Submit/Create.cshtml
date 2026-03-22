@@ -1,0 +1,75 @@
+@model MinsuXize.Web.ViewModels.SubmitEntryViewModel
+@{
+    ViewData["Title"] = "投稿";
+}
+
+<section class="page-header">
+    <span class="eyebrow">用户投稿</span>
+    <h1>提交一条地方民俗信息</h1>
+    <p>这个原型先做结构化投稿闭环。正式版本可以继续扩展附件、图片、音频和版本对比。</p>
+</section>
+
+<section class="form-shell">
+    <form asp-action="Create" method="post" class="entry-form">
+        <div asp-validation-summary="ModelOnly" class="validation-summary"></div>
+
+        <div class="form-grid">
+            <div class="field-group">
+                <label asp-for="ContributorName"></label>
+                <input asp-for="ContributorName" class="field-input" />
+                <span asp-validation-for="ContributorName" class="field-error"></span>
+            </div>
+
+            <div class="field-group">
+                <label asp-for="Contact"></label>
+                <input asp-for="Contact" class="field-input" />
+                <span asp-validation-for="Contact" class="field-error"></span>
+            </div>
+        </div>
+
+        <div class="form-grid">
+            <div class="field-group">
+                <label asp-for="RegionId"></label>
+                <select asp-for="RegionId" asp-items="Model.Regions" class="field-input">
+                    <option value="">请选择地区</option>
+                </select>
+                <span asp-validation-for="RegionId" class="field-error"></span>
+            </div>
+
+            <div class="field-group">
+                <label asp-for="FestivalId"></label>
+                <select asp-for="FestivalId" asp-items="Model.Festivals" class="field-input">
+                    <option value="">请选择节日或时间节点</option>
+                </select>
+                <span asp-validation-for="FestivalId" class="field-error"></span>
+            </div>
+        </div>
+
+        <div class="field-group">
+            <label asp-for="Title"></label>
+            <input asp-for="Title" class="field-input" />
+            <span asp-validation-for="Title" class="field-error"></span>
+        </div>
+
+        <div class="field-group">
+            <label asp-for="Summary"></label>
+            <textarea asp-for="Summary" rows="7" class="field-input"></textarea>
+            <span asp-validation-for="Summary" class="field-error"></span>
+        </div>
+
+        <div class="field-group">
+            <label asp-for="SourceSummary"></label>
+            <textarea asp-for="SourceSummary" rows="6" class="field-input"></textarea>
+            <span asp-validation-for="SourceSummary" class="field-error"></span>
+        </div>
+
+        <div class="form-actions">
+            <button type="submit" class="button-primary">提交审核</button>
+            <a class="button-secondary" asp-controller="Admin" asp-action="Index">查看审核工作台</a>
+        </div>
+    </form>
+</section>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

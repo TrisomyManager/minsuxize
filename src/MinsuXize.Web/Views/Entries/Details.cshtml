@@ -1,0 +1,100 @@
+@model MinsuXize.Web.ViewModels.EntryDetailsViewModel
+@{
+    ViewData["Title"] = Model.Entry.Title;
+}
+
+<section class="page-header">
+    <span class="eyebrow">民俗条目</span>
+    <h1>@Model.Entry.Title</h1>
+    <p>@Model.Entry.Summary</p>
+    <div class="meta-line">
+        <span>地区：@Model.Region.FullPath</span>
+        <span>节日：@Model.Festival.Name</span>
+        <span>状态：@Model.Entry.InheritanceStatus</span>
+    </div>
+</section>
+
+<section class="content-section two-column">
+    <article class="panel-card">
+        <h2>历史渊源</h2>
+        <p>@Model.Entry.HistoricalOrigin</p>
+    </article>
+    <article class="panel-card">
+        <h2>象征意义</h2>
+        <p>@Model.Entry.SymbolicMeaning</p>
+    </article>
+</section>
+
+<section class="content-section detail-grid">
+    <article class="panel-card">
+        <h2>仪式流程</h2>
+        <ol class="ordered-list">
+            @foreach (var step in Model.Entry.RitualProcess)
+            {
+                <li>@step</li>
+            }
+        </ol>
+    </article>
+
+    <article class="panel-card">
+        <h2>使用物品</h2>
+        <ul class="compact-list">
+            @foreach (var item in Model.Entry.ItemsUsed)
+            {
+                <li>@item</li>
+            }
+        </ul>
+    </article>
+
+    <article class="panel-card">
+        <h2>参与者</h2>
+        <ul class="compact-list">
+            @foreach (var participant in Model.Entry.Participants)
+            {
+                <li>@participant</li>
+            }
+        </ul>
+    </article>
+
+    <article class="panel-card">
+        <h2>禁忌与注意事项</h2>
+        <ul class="compact-list">
+            @foreach (var taboo in Model.Entry.Taboos)
+            {
+                <li>@taboo</li>
+            }
+        </ul>
+    </article>
+
+    <article class="panel-card">
+        <h2>口述内容</h2>
+        <blockquote class="oral-quote">@Model.Entry.OralText</blockquote>
+    </article>
+
+    <article class="panel-card">
+        <h2>当代变化</h2>
+        <p>@Model.Entry.ChangeNotes</p>
+    </article>
+</section>
+
+<section class="content-section">
+    <div class="section-heading">
+        <h2>来源证据</h2>
+        <p>正式站点建议进一步支持田野编号、授权状态、附件和可信度等级。</p>
+    </div>
+    <div class="card-grid">
+        @foreach (var source in Model.Sources)
+        {
+            <article class="info-card">
+                <span class="tag">@source.SourceType</span>
+                <h3>@source.Title</h3>
+                <p>@source.Citation</p>
+                <p class="muted">@source.Contributor · @source.RecordedAt</p>
+                @if (!string.IsNullOrWhiteSpace(source.Notes))
+                {
+                    <p class="muted">@source.Notes</p>
+                }
+            </article>
+        }
+    </div>
+</section>

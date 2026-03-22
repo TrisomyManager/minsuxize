@@ -1,0 +1,24 @@
+@model MinsuXize.Web.Models.SubmissionRecord
+@{
+    ViewData["Title"] = "投稿已提交";
+}
+
+<section class="page-header">
+    <span class="eyebrow">投稿成功</span>
+    <h1>你的投稿已经提交成功</h1>
+    <p>内容将进入管理员审核流程。审核通过后，才会对外公开展示。</p>
+</section>
+
+<section class="panel-card success-card">
+    <h2>@Model.Title</h2>
+    <p>@Model.Summary</p>
+    <div class="meta-line">
+        <span>投稿编号：#@Model.Id</span>
+        <span>当前状态：@Model.Status</span>
+        <span>提交时间：@Model.SubmittedAt.ToLocalTime().ToString("yyyy-MM-dd HH:mm")</span>
+    </div>
+    <div class="hero-actions">
+        <a class="button-primary" asp-controller="Entries" asp-action="Index">继续浏览细则</a>
+        <a class="button-secondary" asp-action="Create">继续投稿</a>
+    </div>
+</section>

@@ -1,0 +1,32 @@
+@model MinsuXize.Web.ViewModels.RegionIndexViewModel
+@{
+    ViewData["Title"] = "地区";
+}
+
+<section class="page-header">
+    <span class="eyebrow">地区浏览</span>
+    <h1>从行政区划进入民俗内容</h1>
+    <p>默认先展示中国下一级目录；如果要直达某个市、县、镇、村，可以直接搜索地区名称。</p>
+</section>
+
+<section class="form-shell search-results-shell">
+    <form asp-action="Index" method="get" class="entry-form">
+        <div class="search-main-row">
+            <input class="search-keyword-input" type="text" name="keyword" value="@Model.Keyword" placeholder="搜索例如：山西省、长治市、秦村、乌鲁木齐市" />
+            <button type="submit" class="search-submit-button">搜索地区</button>
+        </div>
+    </form>
+</section>
+
+<section class="card-grid">
+    @foreach (var region in Model.Regions)
+    {
+        <article class="info-card">
+            <span class="tag">@region.Type</span>
+            <h2>@region.Name</h2>
+            <p>@region.Summary</p>
+            <p class="muted">@region.FullPath</p>
+            <a asp-action="Details" asp-route-id="@region.Id">查看详情</a>
+        </article>
+    }
+</section>

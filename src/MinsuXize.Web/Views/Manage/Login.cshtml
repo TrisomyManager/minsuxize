@@ -1,0 +1,37 @@
+@model MinsuXize.Web.ViewModels.AdminLoginViewModel
+@{
+    ViewData["Title"] = "管理员登录";
+}
+
+<section class="page-header">
+    <span class="eyebrow">管理员入口</span>
+    <h1>登录后进入审核页面</h1>
+    <p>审核不对普通用户开放，只有管理员登录后才能处理投稿。</p>
+</section>
+
+<section class="form-shell admin-login-shell">
+    <form asp-action="Login" method="post" class="entry-form">
+        <input type="hidden" asp-for="ReturnUrl" />
+        <div asp-validation-summary="ModelOnly" class="validation-summary"></div>
+
+        <div class="field-group">
+            <label asp-for="Username"></label>
+            <input asp-for="Username" class="field-input" autocomplete="username" />
+            <span asp-validation-for="Username" class="field-error"></span>
+        </div>
+
+        <div class="field-group">
+            <label asp-for="Password"></label>
+            <input asp-for="Password" class="field-input" autocomplete="current-password" />
+            <span asp-validation-for="Password" class="field-error"></span>
+        </div>
+
+        <div class="form-actions">
+            <button type="submit" class="button-primary">进入审核页</button>
+        </div>
+    </form>
+</section>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
