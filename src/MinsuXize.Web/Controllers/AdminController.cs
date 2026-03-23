@@ -40,7 +40,38 @@ public sealed class AdminController : Controller
     [ValidateAntiForgeryToken]
     public IActionResult Review(int id, SubmissionStatus status, string? reviewerNote)
     {
-        _repository.UpdateSubmissionStatus(id, status, reviewerNote);
+        var reviewerName = User.Identity?.Name ?? "Unknown";
+        _repository.UpdateSubmissionStatus(id, status, reviewerNote, reviewerName);
         return RedirectToAction(nameof(Index));
+    }
+    
+    [HttpPost("bulk-update")]
+    [ValidateAntiForgeryToken]
+    public IActionResult BulkReview(List<int> submissionIds, SubmissionStatus status, string? reviewerNote)
+    {
+        var reviewerName = User.Identity?.Name ?? "Unknown";
+        _repository.BulkUpdateSubmissionStatus(submissionIds, status, reviewerNote, reviewerName);
+        return RedirectToAction(nameof(Index));
+    }
+    
+    [HttpGet("history/{id}")]
+    public IActionResult History(int id)
+    {
+        var submission = _repository.GetSubmissionById(id);
+        if (submission is null)
+        {
+            return NotFound();
+        }
+        
+        var history = _repository.GetReviewHistory(id);
+        
+        ViewData["IsAdminPage"] = true;
+        ViewData["AdminUsername"] = User.Identity?.Name;
+        
+        return View(new ReviewHistoryViewModel
+        {
+            Submission = submission,
+            History = history
+        });
     }
 }

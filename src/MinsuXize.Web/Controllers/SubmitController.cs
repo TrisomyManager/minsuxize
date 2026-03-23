@@ -38,7 +38,12 @@ public sealed class SubmitController : Controller
             Title = model.Title,
             Summary = model.Summary,
             SourceSummary = model.SourceSummary,
-            Contact = model.Contact
+            Contact = model.Contact,
+            Images = model.GetImagesList(),
+            Videos = model.GetVideosList(),
+            Audios = model.GetAudiosList(),
+            Location = model.GetLocationInfo(),
+            ChangeLog = model.ChangeLog
         });
 
         return RedirectToAction(nameof(Thanks), new { id = submissionId });

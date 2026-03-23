@@ -19,5 +19,8 @@ public interface IFolkloreRepository
     SubmissionRecord? GetSubmissionById(int id);
     int GetPendingSubmissionCount();
     int CreateSubmission(SubmissionInput input);
-    void UpdateSubmissionStatus(int submissionId, SubmissionStatus status, string? reviewerNote);
+    void UpdateSubmissionStatus(int submissionId, SubmissionStatus status, string? reviewerNote, string reviewerName);
+    IReadOnlyList<ReviewHistory> GetReviewHistory(int submissionId);
+    void AddReviewHistory(ReviewHistory history);
+    void BulkUpdateSubmissionStatus(List<int> submissionIds, SubmissionStatus status, string? reviewerNote, string reviewerName);
 }

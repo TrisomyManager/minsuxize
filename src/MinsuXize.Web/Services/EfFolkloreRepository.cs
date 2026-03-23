@@ -3,6 +3,7 @@ using MinsuXize.Web.Data;
 using MinsuXize.Web.Data.Entities;
 using MinsuXize.Web.Data.Seed;
 using MinsuXize.Web.Models;
+using System.Text.Json;
 
 namespace MinsuXize.Web.Services;
 
@@ -149,7 +150,25 @@ public sealed class EfFolkloreRepository : IFolkloreRepository
             SourceSummary = input.SourceSummary,
             Contact = input.Contact,
             SubmittedAtUtc = DateTime.UtcNow,
-            Status = (int)SubmissionStatus.PendingReview
+            Status = (int)SubmissionStatus.PendingReview,
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow,
+            CreatedBy = input.ContributorName,
+            Version = 1,
+            ChangeLog = input.ChangeLog,
+            Images = input.Images,
+            Videos = input.Videos,
+            Audios = input.Audios,
+            Location = input.Location == null ? null : new Data.Entities.LocationInfoData
+            {
+                Latitude = input.Location.Latitude,
+                Longitude = input.Location.Longitude,
+                Address = input.Location.Address,
+                City = input.Location.City,
+                Province = input.Location.Province,
+                Country = input.Location.Country,
+                Description = input.Location.Description
+            }
         };
 
         _context.Submissions.Add(entity);
@@ -157,7 +176,7 @@ public sealed class EfFolkloreRepository : IFolkloreRepository
         return entity.Id;
     }
 
-    public void UpdateSubmissionStatus(int submissionId, SubmissionStatus status, string? reviewerNote)
+    public void UpdateSubmissionStatus(int submissionId, SubmissionStatus status, string? reviewerNote, string reviewerName)
     {
         var entity = _context.Submissions.FirstOrDefault(item => item.Id == submissionId);
         if (entity is null)
@@ -165,8 +184,92 @@ public sealed class EfFolkloreRepository : IFolkloreRepository
             return;
         }
 
+        var oldStatus = (SubmissionStatus)entity.Status;
         entity.Status = (int)status;
         entity.ReviewerNote = reviewerNote;
+        entity.UpdatedAt = DateTime.UtcNow;
+        
+        // 记录审核历史
+        var history = new ReviewHistoryEntity
+        {
+            SubmissionId = submissionId,
+            OldStatus = (int)oldStatus,
+            NewStatus = (int)status,
+            Reviewer = reviewerName,
+            ReviewerNote = reviewerNote,
+            ReviewedAt = DateTime.UtcNow,
+            ChangeSummary = $"状态从 {oldStatus} 更改为 {status}"
+        };
+        
+        _context.ReviewHistories.Add(history);
+        _context.SaveChanges();
+    }
+    
+    public IReadOnlyList<ReviewHistory> GetReviewHistory(int submissionId)
+    {
+        return _context.ReviewHistories
+            .Where(h => h.SubmissionId == submissionId)
+            .OrderByDescending(h => h.ReviewedAt)
+            .Select(h => new ReviewHistory
+            {
+                Id = h.Id,
+                SubmissionId = h.SubmissionId,
+                OldStatus = (SubmissionStatus)h.OldStatus,
+                NewStatus = (SubmissionStatus)h.NewStatus,
+                Reviewer = h.Reviewer,
+                ReviewerNote = h.ReviewerNote,
+                ReviewedAt = h.ReviewedAt,
+                ChangeSummary = h.ChangeSummary
+            })
+            .ToList();
+    }
+    
+    public void AddReviewHistory(ReviewHistory history)
+    {
+        var entity = new ReviewHistoryEntity
+        {
+            SubmissionId = history.SubmissionId,
+            OldStatus = (int)history.OldStatus,
+            NewStatus = (int)history.NewStatus,
+            Reviewer = history.Reviewer,
+            ReviewerNote = history.ReviewerNote,
+            ReviewedAt = history.ReviewedAt,
+            ChangeSummary = history.ChangeSummary,
+            MetadataJson = history.MetadataJson
+        };
+        
+        _context.ReviewHistories.Add(entity);
+        _context.SaveChanges();
+    }
+    
+    public void BulkUpdateSubmissionStatus(List<int> submissionIds, SubmissionStatus status, string? reviewerNote, string reviewerName)
+    {
+        var entities = _context.Submissions
+            .Where(s => submissionIds.Contains(s.Id))
+            .ToList();
+            
+        foreach (var entity in entities)
+        {
+            var oldStatus = (SubmissionStatus)entity.Status;
+            entity.Status = (int)status;
+            entity.ReviewerNote = reviewerNote;
+            entity.UpdatedAt = DateTime.UtcNow;
+            
+            // 记录审核历史
+            var history = new ReviewHistoryEntity
+            {
+                SubmissionId = entity.Id,
+                OldStatus = (int)oldStatus,
+                NewStatus = (int)status,
+                Reviewer = reviewerName,
+                ReviewerNote = reviewerNote,
+                ReviewedAt = DateTime.UtcNow,
+                ChangeSummary = $"批量操作：状态从 {oldStatus} 更改为 {status}"
+            };
+            
+            _context.ReviewHistories.Add(history);
+        }
+        
         _context.SaveChanges();
     }
 
@@ -206,8 +309,26 @@ public sealed class EfFolkloreRepository : IFolkloreRepository
         return MapEntry(entity, sourceIds);
     }
 
-    private static FolkloreEntry MapEntry(FolkloreEntryEntity entity, IReadOnlyList<int> sourceIds) =>
-        new()
+    private static FolkloreEntry MapEntry(FolkloreEntryEntity entity, IReadOnlyList<int> sourceIds)
+    {
+        GeoLocation? location = null;
+        if (!string.IsNullOrEmpty(entity.LocationJson))
+        {
+            try
+            {
+                var locationData = System.Text.Json.JsonSerializer.Deserialize<GeoLocationData>(entity.LocationJson);
+                if (locationData != null)
+                {
+                    location = new GeoLocation(locationData.Latitude, locationData.Longitude, locationData.AddressDetail);
+                }
+            }
+            catch
+            {
+                // 如果反序列化失败，保持为 null
+            }
+        }
+
+        return new()
         {
             Id = entity.Id,
             Title = entity.Title,
@@ -223,8 +344,27 @@ public sealed class EfFolkloreRepository : IFolkloreRepository
             ItemsUsed = JsonListSerializer.Deserialize(entity.ItemsUsedJson),
             Taboos = JsonListSerializer.Deserialize(entity.TaboosJson),
             Participants = JsonListSerializer.Deserialize(entity.ParticipantsJson),
-            SourceIds = sourceIds
+            SourceIds = sourceIds,
+            // 新增字段
+            CreatedAt = entity.CreatedAt,
+            UpdatedAt = entity.UpdatedAt,
+            CreatedBy = entity.CreatedBy,
+            Status = entity.Status,
+            Version = entity.Version,
+            ChangeLog = entity.ChangeLog,
+            Images = JsonListSerializer.Deserialize(entity.ImagesJson),
+            Videos = JsonListSerializer.Deserialize(entity.VideosJson),
+            Audios = JsonListSerializer.Deserialize(entity.AudiosJson),
+            Location = location
         };
+    }
+
+    private class GeoLocationData
+    {
+        public double Latitude { get; set; }
+        public double Longitude { get; set; }
+        public string? AddressDetail { get; set; }
+    }
 
     private static SourceEvidence MapSource(SourceEvidenceEntity entity) =>
         new()

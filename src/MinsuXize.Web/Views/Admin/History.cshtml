@@ -1,0 +1,256 @@
+@model MinsuXize.Web.ViewModels.ReviewHistoryViewModel
+@{
+    ViewData["Title"] = "审核历史";
+    
+    string GetStatusText(MinsuXize.Web.Models.SubmissionStatus status)
+    {
+        return status switch
+        {
+            MinsuXize.Web.Models.SubmissionStatus.PendingReview => "待审核",
+            MinsuXize.Web.Models.SubmissionStatus.NeedsRevision => "需要修改",
+            MinsuXize.Web.Models.SubmissionStatus.Approved => "已通过",
+            MinsuXize.Web.Models.SubmissionStatus.Rejected => "已拒绝",
+            _ => status.ToString()
+        };
+    }
+    
+    string GetStatusClass(MinsuXize.Web.Models.SubmissionStatus status)
+    {
+        return status switch
+        {
+            MinsuXize.Web.Models.SubmissionStatus.PendingReview => "status-pending",
+            MinsuXize.Web.Models.SubmissionStatus.NeedsRevision => "status-revision",
+            MinsuXize.Web.Models.SubmissionStatus.Approved => "status-approved",
+            MinsuXize.Web.Models.SubmissionStatus.Rejected => "status-rejected",
+            _ => ""
+        };
+    }
+}
+
+<section class="page-header">
+    <span class="eyebrow">审核历史</span>
+    <h1>投稿 #@Model.Submission.Id 的审核记录</h1>
+    <p>查看投稿的完整审核历史记录。</p>
+</section>
+
+<section class="panel-card">
+    <div class="submission-header">
+        <div>
+            <span class="tag @GetStatusClass(Model.Submission.Status)">@GetStatusText(Model.Submission.Status)</span>
+            <h2>@Model.Submission.Title</h2>
+        </div>
+        <div class="submission-meta">
+            <span class="muted">#@Model.Submission.Id</span>
+            <span class="muted">v@(Model.Submission.Version)</span>
+            <span class="muted">@Model.Submission.CreatedAt.ToLocalTime().ToString("yyyy-MM-dd HH:mm")</span>
+        </div>
+    </div>
+    
+    <div class="submission-info">
+        <p><strong>投稿人：</strong>@Model.Submission.ContributorName</p>
+        <p><strong>当前状态：</strong>@GetStatusText(Model.Submission.Status)</p>
+        @if (!string.IsNullOrEmpty(Model.Submission.ReviewerNote))
+        {
+            <p><strong>最新审核意见：</strong>@Model.Submission.ReviewerNote</p>
+        }
+    </div>
+</section>
+
+<section class="history-section">
+    <h2>审核历史记录</h2>
+    
+    @if (Model.History.Any())
+    {
+        <div class="history-timeline">
+            @foreach (var record in Model.History)
+            {
+                <div class="history-item">
+                    <div class="history-time">
+                        @record.ReviewedAt.ToLocalTime().ToString("yyyy-MM-dd HH:mm")
+                    </div>
+                    <div class="history-content">
+                        <div class="history-header">
+                            <span class="history-reviewer">@record.Reviewer</span>
+                            <span class="history-status-change">
+                                <span class="status-old @GetStatusClass(record.OldStatus)">@GetStatusText(record.OldStatus)</span>
+                                <span class="history-arrow">→</span>
+                                <span class="status-new @GetStatusClass(record.NewStatus)">@GetStatusText(record.NewStatus)</span>
+                            </span>
+                        </div>
+                        @if (!string.IsNullOrEmpty(record.ChangeSummary))
+                        {
+                            <div class="history-summary">@record.ChangeSummary</div>
+                        }
+                        @if (!string.IsNullOrEmpty(record.ReviewerNote))
+                        {
+                            <div class="history-note">
+                                <strong>审核意见：</strong>@record.ReviewerNote
+                            </div>
+                        }
+                    </div>
+                </div>
+            }
+        </div>
+    }
+    else
+    {
+        <div class="empty-state">
+            <p>暂无审核历史记录。</p>
+        </div>
+    }
+    
+    <div class="history-actions">
+        <a class="button-secondary" asp-action="Index">返回审核台</a>
+        <a class="button-primary" href="/submit/create">创建新投稿</a>
+    </div>
+</section>
+
+<style>
+.history-section {
+    margin-top: 2rem;
+}
+
+.history-timeline {
+    margin: 1.5rem 0;
+    border-left: 3px solid #e9ecef;
+    padding-left: 1.5rem;
+}
+
+.history-item {
+    margin-bottom: 1.5rem;
+    position: relative;
+}
+
+.history-item:before {
+    content: "";
+    position: absolute;
+    left: -1.65rem;
+    top: 0.5rem;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background-color: #007bff;
+    border: 2px solid white;
+    box-shadow: 0 0 0 2px #007bff;
+}
+
+.history-time {
+    font-size: 0.875rem;
+    color: #6c757d;
+    margin-bottom: 0.25rem;
+}
+
+.history-content {
+    background: #f8f9fa;
+    border-radius: 8px;
+    padding: 1rem;
+    border: 1px solid #e9ecef;
+}
+
+.history-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.5rem;
+}
+
+.history-reviewer {
+    font-weight: 500;
+    color: #495057;
+}
+
+.history-status-change {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.history-arrow {
+    color: #6c757d;
+    font-weight: bold;
+}
+
+.status-old, .status-new {
+    display: inline-block;
+    padding: 0.25rem 0.75rem;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 500;
+}
+
+.status-old.status-pending,
+.status-new.status-pending {
+    background-color: #fff3cd;
+    color: #856404;
+    border: 1px solid #ffeaa7;
+}
+
+.status-old.status-revision,
+.status-new.status-revision {
+    background-color: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+}
+
+.status-old.status-approved,
+.status-new.status-approved {
+    background-color: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+}
+
+.status-old.status-rejected,
+.status-new.status-rejected {
+    background-color: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+}
+
+.history-summary {
+    color: #495057;
+    margin-bottom: 0.5rem;
+    font-size: 0.9rem;
+}
+
+.history-note {
+    background: white;
+    border-left: 3px solid #007bff;
+    padding: 0.75rem;
+    margin-top: 0.5rem;
+    border-radius: 4px;
+    font-size: 0.9rem;
+}
+
+.history-note strong {
+    color: #495057;
+}
+
+.empty-state {
+    text-align: center;
+    padding: 3rem;
+    color: #6c757d;
+    background: #f8f9fa;
+    border-radius: 8px;
+    border: 2px dashed #dee2e6;
+}
+
+.history-actions {
+    display: flex;
+    gap: 1rem;
+    margin-top: 2rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid #dee2e6;
+}
+
+.submission-info {
+    margin: 1.5rem 0;
+    padding: 1rem;
+    background: #f8f9fa;
+    border-radius: 8px;
+    border-left: 4px solid #6c757d;
+}
+
+.submission-info p {
+    margin: 0.5rem 0;
+}
+</style>

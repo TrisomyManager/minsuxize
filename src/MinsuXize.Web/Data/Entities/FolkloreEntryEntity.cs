@@ -16,4 +16,16 @@ public sealed class FolkloreEntryEntity
     public string ItemsUsedJson { get; set; } = "[]";
     public string TaboosJson { get; set; } = "[]";
     public string ParticipantsJson { get; set; } = "[]";
+    
+    // 新增字段
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
+    public string CreatedBy { get; set; } = "system";
+    public string Status { get; set; } = "draft"; // draft, submitted, reviewing, approved, published, archived
+    public int Version { get; set; } = 1;
+    public string ChangeLog { get; set; } = "Initial version";
+    public string ImagesJson { get; set; } = "[]";
+    public string VideosJson { get; set; } = "[]";
+    public string AudiosJson { get; set; } = "[]";
+    public string? LocationJson { get; set; }
 }

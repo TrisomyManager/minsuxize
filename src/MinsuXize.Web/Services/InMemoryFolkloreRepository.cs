@@ -10,7 +10,9 @@ public sealed class InMemoryFolkloreRepository : IFolkloreRepository
     private readonly List<FolkloreEntry> _entries;
     private readonly List<SourceEvidence> _sources;
     private readonly List<SubmissionRecord> _submissions;
+    private readonly List<ReviewHistory> _reviewHistories;
     private int _submissionId;
+    private int _reviewHistoryId;
 
     public InMemoryFolkloreRepository()
     {
@@ -192,7 +194,18 @@ public sealed class InMemoryFolkloreRepository : IFolkloreRepository
                 ItemsUsed = ["香炉", "纸钱", "馒头或花馍", "酒水", "熟食供品"],
                 Taboos = ["祭拜过程中避免嬉笑打闹", "供桌未撤前不随意挪动物件", "祭词期间避免说不吉利的话"],
                 Participants = ["家中长者主礼", "家庭成员按长幼顺序参与", "晚辈负责摆供与辅助"],
-                SourceIds = [1]
+                SourceIds = [1],
+                // 新增字段
+                CreatedAt = new DateTime(2026, 3, 1, 10, 0, 0, DateTimeKind.Utc),
+                UpdatedAt = new DateTime(2026, 3, 15, 14, 30, 0, DateTimeKind.Utc),
+                CreatedBy = "admin",
+                Status = "published",
+                Version = 1,
+                ChangeLog = "初始版本",
+                Images = ["images/秦村祭祖1.jpg", "images/秦村祭祖2.jpg"],
+                Videos = ["videos/秦村祭祖仪式.mp4"],
+                Audios = ["audios/祭词录音.mp3"],
+                Location = new GeoLocation(36.1911, 113.1012, "山西省长治市上党区苏店镇秦村")
             },
             new FolkloreEntry
             {
@@ -216,7 +229,18 @@ public sealed class InMemoryFolkloreRepository : IFolkloreRepository
                 ItemsUsed = ["糖瓜", "清水", "草料", "纸马", "线香"],
                 Taboos = ["不说晦气话", "仪式前不打翻供品", "灶台清理后避免马上重油烹煮"],
                 Participants = ["家中长者主礼", "女性成员多负责清扫和备供", "儿童参与分食糖瓜"],
-                SourceIds = [2]
+                SourceIds = [2],
+                // 新增字段
+                CreatedAt = new DateTime(2026, 2, 28, 15, 20, 0, DateTimeKind.Utc),
+                UpdatedAt = new DateTime(2026, 3, 10, 9, 45, 0, DateTimeKind.Utc),
+                CreatedBy = "admin",
+                Status = "published",
+                Version = 1,
+                ChangeLog = "初始版本",
+                Images = ["images/祭灶1.jpg"],
+                Videos = [],
+                Audios = [],
+                Location = new GeoLocation(36.1923, 113.1025, "山西省长治市上党区苏店镇秦村")
             },
             new FolkloreEntry
             {
@@ -240,7 +264,18 @@ public sealed class InMemoryFolkloreRepository : IFolkloreRepository
                 ItemsUsed = ["香火", "纸钱", "灯火器具", "表演道具"],
                 Taboos = ["表演空间内避免随意穿行", "祭祀时段不喧哗", "焚化物件需由熟悉流程者处理"],
                 Participants = ["家户祭祖成员", "社区组织者", "表演参与者", "围观村民与返乡青年"],
-                SourceIds = [3]
+                SourceIds = [3],
+                // 新增字段
+                CreatedAt = new DateTime(2026, 3, 5, 11, 30, 0, DateTimeKind.Utc),
+                UpdatedAt = new DateTime(2026, 3, 18, 16, 15, 0, DateTimeKind.Utc),
+                CreatedBy = "admin",
+                Status = "published",
+                Version = 1,
+                ChangeLog = "初始版本",
+                Images = ["images/中元节1.jpg", "images/中元节2.jpg", "images/中元节3.jpg"],
+                Videos = ["videos/中元节表演.mp4"],
+                Audios = ["audios/中元节祭词.mp3"],
+                Location = new GeoLocation(36.2056, 113.0879, "山西省长治市上党区西火镇")
             }
         ];
 
@@ -275,7 +310,9 @@ public sealed class InMemoryFolkloreRepository : IFolkloreRepository
             }
         ];
 
+        _reviewHistories = [];
         _submissionId = _submissions.Max(item => item.Id);
+        _reviewHistoryId = 0;
     }
 
     public IReadOnlyList<Region> GetRegions() => _regions;
@@ -342,7 +379,16 @@ public sealed class InMemoryFolkloreRepository : IFolkloreRepository
                 SourceSummary = input.SourceSummary,
                 Contact = input.Contact,
                 SubmittedAt = DateTime.UtcNow,
-                Status = SubmissionStatus.PendingReview
+                Status = SubmissionStatus.PendingReview,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow,
+                CreatedBy = input.ContributorName,
+                Version = 1,
+                ChangeLog = input.ChangeLog,
+                Images = input.Images,
+                Videos = input.Videos,
+                Audios = input.Audios,
+                Location = input.Location
             };
 
             _submissions.Add(submission);
@@ -350,7 +396,7 @@ public sealed class InMemoryFolkloreRepository : IFolkloreRepository
         }
     }
 
-    public void UpdateSubmissionStatus(int submissionId, SubmissionStatus status, string? reviewerNote)
+    public void UpdateSubmissionStatus(int submissionId, SubmissionStatus status, string? reviewerNote, string reviewerName)
     {
         lock (_gate)
         {
@@ -360,8 +406,77 @@ public sealed class InMemoryFolkloreRepository : IFolkloreRepository
                 return;
             }
 
+            var oldStatus = submission.Status;
             submission.Status = status;
             submission.ReviewerNote = reviewerNote;
+            submission.UpdatedAt = DateTime.UtcNow;
+            
+            // 记录审核历史
+            var history = new ReviewHistory
+            {
+                Id = ++_reviewHistoryId,
+                SubmissionId = submissionId,
+                OldStatus = oldStatus,
+                NewStatus = status,
+                Reviewer = reviewerName,
+                ReviewerNote = reviewerNote,
+                ReviewedAt = DateTime.UtcNow,
+                ChangeSummary = $"状态从 {oldStatus} 更改为 {status}"
+            };
+            
+            _reviewHistories.Add(history);
+        }
+    }
+    
+    public IReadOnlyList<ReviewHistory> GetReviewHistory(int submissionId)
+    {
+        lock (_gate)
+        {
+            return _reviewHistories
+                .Where(h => h.SubmissionId == submissionId)
+                .OrderByDescending(h => h.ReviewedAt)
+                .ToList();
+        }
+    }
+    
+    public void AddReviewHistory(ReviewHistory history)
+    {
+        lock (_gate)
+        {
+            history.Id = ++_reviewHistoryId;
+            _reviewHistories.Add(history);
+        }
+    }
+    
+    public void BulkUpdateSubmissionStatus(List<int> submissionIds, SubmissionStatus status, string? reviewerNote, string reviewerName)
+    {
+        lock (_gate)
+        {
+            foreach (var submissionId in submissionIds)
+            {
+                var submission = _submissions.FirstOrDefault(item => item.Id == submissionId);
+                if (submission is null) continue;
+                
+                var oldStatus = submission.Status;
+                submission.Status = status;
+                submission.ReviewerNote = reviewerNote;
+                submission.UpdatedAt = DateTime.UtcNow;
+                
+                // 记录审核历史
+                var history = new ReviewHistory
+                {
+                    Id = ++_reviewHistoryId,
+                    SubmissionId = submissionId,
+                    OldStatus = oldStatus,
+                    NewStatus = status,
+                    Reviewer = reviewerName,
+                    ReviewerNote = reviewerNote,
+                    ReviewedAt = DateTime.UtcNow,
+                    ChangeSummary = $"批量操作：状态从 {oldStatus} 更改为 {status}"
+                };
+                
+                _reviewHistories.Add(history);
+            }
         }
     }
 }

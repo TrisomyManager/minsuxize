@@ -1,6 +1,18 @@
 @model MinsuXize.Web.Models.SubmissionRecord
 @{
     ViewData["Title"] = "投稿已提交";
+    
+    string GetStatusText(SubmissionStatus status)
+    {
+        return status switch
+        {
+            SubmissionStatus.PendingReview => "待审核",
+            SubmissionStatus.NeedsRevision => "需要修改",
+            SubmissionStatus.Approved => "已通过",
+            SubmissionStatus.Rejected => "已拒绝",
+            _ => status.ToString()
+        };
+    }
 }
 
 <section class="page-header">
@@ -12,13 +24,197 @@
 <section class="panel-card success-card">
     <h2>@Model.Title</h2>
     <p>@Model.Summary</p>
-    <div class="meta-line">
-        <span>投稿编号：#@Model.Id</span>
-        <span>当前状态：@Model.Status</span>
-        <span>提交时间：@Model.SubmittedAt.ToLocalTime().ToString("yyyy-MM-dd HH:mm")</span>
+    
+    <div class="submission-details">
+        <h3>投稿详情</h3>
+        <div class="detail-grid">
+            <div class="detail-item">
+                <strong>投稿编号：</strong> #@Model.Id
+            </div>
+            <div class="detail-item">
+                <strong>投稿人：</strong> @Model.ContributorName
+            </div>
+            <div class="detail-item">
+                <strong>当前状态：</strong> <span class="status-badge status-@Model.Status.ToString().ToLower()">@GetStatusText(Model.Status)</span>
+            </div>
+            <div class="detail-item">
+                <strong>提交时间：</strong> @Model.SubmittedAt.ToLocalTime().ToString("yyyy-MM-dd HH:mm")
+            </div>
+            <div class="detail-item">
+                <strong>创建时间：</strong> @Model.CreatedAt.ToLocalTime().ToString("yyyy-MM-dd HH:mm")
+            </div>
+            <div class="detail-item">
+                <strong>版本：</strong> v@Model.Version
+            </div>
+        </div>
+        
+        @if (!string.IsNullOrEmpty(Model.ChangeLog))
+        {
+            <div class="detail-section">
+                <h4>变更说明</h4>
+                <p>@Model.ChangeLog</p>
+            </div>
+        }
+        
+        @if (Model.Images?.Any() == true)
+        {
+            <div class="detail-section">
+                <h4>图片链接 (@Model.Images.Count 个)</h4>
+                <ul class="link-list">
+                    @foreach (var image in Model.Images)
+                    {
+                        <li><a href="@image" target="_blank">@image</a></li>
+                    }
+                </ul>
+            </div>
+        }
+        
+        @if (Model.Videos?.Any() == true)
+        {
+            <div class="detail-section">
+                <h4>视频链接 (@Model.Videos.Count 个)</h4>
+                <ul class="link-list">
+                    @foreach (var video in Model.Videos)
+                    {
+                        <li><a href="@video" target="_blank">@video</a></li>
+                    }
+                </ul>
+            </div>
+        }
+        
+        @if (Model.Audios?.Any() == true)
+        {
+            <div class="detail-section">
+                <h4>音频链接 (@Model.Audios.Count 个)</h4>
+                <ul class="link-list">
+                    @foreach (var audio in Model.Audios)
+                    {
+                        <li><a href="@audio" target="_blank">@audio</a></li>
+                    }
+                </ul>
+            </div>
+        }
+        
+        @if (Model.Location != null)
+        {
+            <div class="detail-section">
+                <h4>地理位置</h4>
+                <p>
+                    坐标：@Model.Location.Latitude, @Model.Location.Longitude<br />
+                    @if (!string.IsNullOrEmpty(Model.Location.Address))
+                    {
+                        <span>地址：@Model.Location.Address</span>
+                    }
+                </p>
+            </div>
+        }
     </div>
+    
     <div class="hero-actions">
         <a class="button-primary" asp-controller="Entries" asp-action="Index">继续浏览细则</a>
         <a class="button-secondary" asp-action="Create">继续投稿</a>
     </div>
 </section>
+
+<style>
+.submission-details {
+    margin: 2rem 0;
+    padding: 1.5rem;
+    background: #f8f9fa;
+    border-radius: 8px;
+    border-left: 4px solid #007bff;
+}
+
+.submission-details h3 {
+    margin-top: 0;
+    color: #333;
+    border-bottom: 1px solid #dee2e6;
+    padding-bottom: 0.5rem;
+}
+
+.detail-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 1rem;
+    margin: 1rem 0;
+}
+
+.detail-item {
+    padding: 0.5rem;
+    background: white;
+    border-radius: 4px;
+    border: 1px solid #dee2e6;
+}
+
+.detail-section {
+    margin: 1.5rem 0;
+    padding: 1rem;
+    background: white;
+    border-radius: 6px;
+    border: 1px solid #e9ecef;
+}
+
+.detail-section h4 {
+    margin-top: 0;
+    color: #495057;
+    border-bottom: 1px solid #dee2e6;
+    padding-bottom: 0.5rem;
+}
+
+.link-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.link-list li {
+    padding: 0.25rem 0;
+    border-bottom: 1px solid #f1f3f5;
+}
+
+.link-list li:last-child {
+    border-bottom: none;
+}
+
+.link-list a {
+    color: #007bff;
+    text-decoration: none;
+    word-break: break-all;
+}
+
+.link-list a:hover {
+    text-decoration: underline;
+}
+
+.status-badge {
+    display: inline-block;
+    padding: 0.25rem 0.75rem;
+    border-radius: 12px;
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+.status-pendingreview {
+    background-color: #fff3cd;
+    color: #856404;
+    border: 1px solid #ffeaa7;
+}
+
+.status-needsrevision {
+    background-color: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+}
+
+.status-approved {
+    background-color: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+}
+
+.status-rejected {
+    background-color: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+}
+</style>

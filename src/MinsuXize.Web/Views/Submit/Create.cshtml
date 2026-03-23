@@ -6,7 +6,7 @@
 <section class="page-header">
     <span class="eyebrow">用户投稿</span>
     <h1>提交一条地方民俗信息</h1>
-    <p>这个原型先做结构化投稿闭环。正式版本可以继续扩展附件、图片、音频和版本对比。</p>
+    <p>支持多媒体内容（图片、视频、音频）、地理位置信息和版本管理。所有投稿内容将进入审核流程。</p>
 </section>
 
 <section class="form-shell">
@@ -61,6 +61,59 @@
             <label asp-for="SourceSummary"></label>
             <textarea asp-for="SourceSummary" rows="6" class="field-input"></textarea>
             <span asp-validation-for="SourceSummary" class="field-error"></span>
+        </div>
+
+        <div class="form-grid">
+            <div class="field-group">
+                <label asp-for="ImagesInput"></label>
+                <textarea asp-for="ImagesInput" rows="3" class="field-input" placeholder="请输入图片链接，多个链接用逗号分隔"></textarea>
+                <span asp-validation-for="ImagesInput" class="field-error"></span>
+                <small class="field-hint">支持 JPG、PNG、GIF 等格式的图片链接</small>
+            </div>
+
+            <div class="field-group">
+                <label asp-for="VideosInput"></label>
+                <textarea asp-for="VideosInput" rows="3" class="field-input" placeholder="请输入视频链接，多个链接用逗号分隔"></textarea>
+                <span asp-validation-for="VideosInput" class="field-error"></span>
+                <small class="field-hint">支持 MP4、WebM 等格式的视频链接</small>
+            </div>
+        </div>
+
+        <div class="form-grid">
+            <div class="field-group">
+                <label asp-for="AudiosInput"></label>
+                <textarea asp-for="AudiosInput" rows="3" class="field-input" placeholder="请输入音频链接，多个链接用逗号分隔"></textarea>
+                <span asp-validation-for="AudiosInput" class="field-error"></span>
+                <small class="field-hint">支持 MP3、WAV 等格式的音频链接</small>
+            </div>
+
+            <div class="field-group">
+                <label asp-for="ChangeLog"></label>
+                <textarea asp-for="ChangeLog" rows="3" class="field-input" placeholder="请输入版本变更说明（可选）"></textarea>
+                <span asp-validation-for="ChangeLog" class="field-error"></span>
+                <small class="field-hint">描述此版本的变更内容</small>
+            </div>
+        </div>
+
+        <div class="field-group">
+            <h3>地理位置信息（可选）</h3>
+            <div class="form-grid">
+                <div class="field-group">
+                    <label asp-for="Latitude"></label>
+                    <input asp-for="Latitude" class="field-input" type="number" step="0.000001" placeholder="例如：39.9042" />
+                    <span asp-validation-for="Latitude" class="field-error"></span>
+                </div>
+                <div class="field-group">
+                    <label asp-for="Longitude"></label>
+                    <input asp-for="Longitude" class="field-input" type="number" step="0.000001" placeholder="例如：116.4074" />
+                    <span asp-validation-for="Longitude" class="field-error"></span>
+                </div>
+            </div>
+            <div class="field-group">
+                <label asp-for="Address"></label>
+                <input asp-for="Address" class="field-input" placeholder="例如：北京市东城区天安门广场" />
+                <span asp-validation-for="Address" class="field-error"></span>
+            </div>
         </div>
 
         <div class="form-actions">
