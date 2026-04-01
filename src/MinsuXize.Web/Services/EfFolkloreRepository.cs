@@ -392,6 +392,26 @@ public sealed class EfFolkloreRepository : IFolkloreRepository
             Contact = entity.Contact,
             SubmittedAt = DateTime.SpecifyKind(entity.SubmittedAtUtc, DateTimeKind.Utc),
             Status = (SubmissionStatus)entity.Status,
-            ReviewerNote = entity.ReviewerNote
+            ReviewerNote = entity.ReviewerNote,
+            CreatedAt = entity.CreatedAt,
+            UpdatedAt = entity.UpdatedAt,
+            CreatedBy = entity.CreatedBy,
+            Version = entity.Version,
+            ChangeLog = entity.ChangeLog,
+            Images = entity.Images,
+            Videos = entity.Videos,
+            Audios = entity.Audios,
+            Location = entity.Location == null
+                ? null
+                : new LocationInfo
+                {
+                    Latitude = entity.Location.Latitude,
+                    Longitude = entity.Location.Longitude,
+                    Address = entity.Location.Address,
+                    City = entity.Location.City,
+                    Province = entity.Location.Province,
+                    Country = entity.Location.Country,
+                    Description = entity.Location.Description
+                }
         };
 }

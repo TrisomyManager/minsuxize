@@ -1,19 +1,22 @@
 @model MinsuXize.Web.ViewModels.EntrySearchViewModel
-@{
-    ViewData["Title"] = "搜索民俗细则";
-}
 
 <section class="page-header">
-    <span class="eyebrow">民俗细则搜索</span>
-    <h1>搜索对应的地方民俗细则</h1>
-    <p>你可以组合地区、节日和关键词来查找具体条目。</p>
+    <span class="eyebrow">习俗浏览</span>
+    <h1>习俗列表</h1>
+    <p>这里收录的是已经整理出的地方习俗记录。你可以按关键词、地区、节令或存续状态筛选，再进入详情页继续查看。</p>
+    @if (!string.IsNullOrWhiteSpace(Model.SelectedRegionLabel))
+    {
+        <div class="meta-list">
+            <span>当前地区：@Model.SelectedRegionLabel</span>
+        </div>
+    }
 </section>
 
-<section class="form-shell search-results-shell">
-    <form asp-action="Index" method="get" class="entry-form">
+<section class="content-section search-shell">
+    <form asp-action="Index" method="get" class="search-form">
         <div class="search-main-row">
-            <input class="search-keyword-input" type="text" name="keyword" value="@Model.Keyword" placeholder="搜索例如：秦村、祭灶、除夕祭祖、糖瓜、禁忌" />
-            <button type="submit" class="search-submit-button">重新搜索</button>
+            <input class="search-keyword-input" type="text" name="keyword" value="@Model.Keyword" placeholder="搜索做法、供品、禁忌、地点或口述关键词" />
+            <button type="submit" class="search-submit-button">查看结果</button>
         </div>
         <div class="search-filter-row">
             <select name="regionId" class="search-select-input">
@@ -24,8 +27,15 @@
                 }
             </select>
             <select name="festivalId" class="search-select-input">
-                <option value="">不限节日</option>
+                <option value="">不限节令</option>
                 @foreach (var option in Model.FestivalOptions)
+                {
+                    <option value="@option.Value" selected="@option.Selected">@option.Text</option>
+                }
+            </select>
+            <select name="inheritanceStatus" class="search-select-input">
+                <option value="">不限存续状态</option>
+                @foreach (var option in Model.InheritanceStatusOptions)
                 {
                     <option value="@option.Value" selected="@option.Selected">@option.Text</option>
                 }
@@ -36,35 +46,44 @@
 
 <section class="content-section">
     <div class="section-heading">
-        <h2>搜索结果</h2>
-        <p>共找到 @Model.Entries.Count 条细则。</p>
-        @if (!string.IsNullOrWhiteSpace(Model.SelectedRegionLabel))
-        {
-            <p>当前地区筛选：@Model.SelectedRegionLabel。结果会自动包含该地区下级行政区划中的条目。</p>
-        }
+        <span class="eyebrow">搜索结果</span>
+        <h2>共找到 @Model.Entries.Count 条记录</h2>
+        <p>列表页会先给出地点、节令、摘要和存续状态，方便你判断是否值得点进详情页继续看。</p>
     </div>
 
     @if (Model.Entries.Count == 0)
     {
         <div class="empty-state">
-            <p>没有找到匹配的细则，可以换个关键词，或者放宽地区、节日筛选。</p>
+            <h3>暂时没有匹配结果</h3>
+            <p>可以试着缩短关键词、放宽筛选条件，或者直接提交一条新的补充线索。</p>
+            <div class="utility-actions">
+                <a class="button-secondary" asp-controller="Submit" asp-action="Create">提交补充</a>
+                <a class="button-primary" asp-controller="Home" asp-action="Index">返回首页</a>
+            </div>
         </div>
     }
     else
     {
-        <div class="card-grid">
+        <div class="result-grid">
             @foreach (var entry in Model.Entries)
             {
                 var region = Model.RegionsById[entry.RegionId];
                 var festival = Model.FestivalsById[entry.FestivalId];
 
-                <article class="info-card">
-                    <span class="tag">@festival.Name</span>
-                    <h2>@entry.Title</h2>
+                <article class="surface-card">
+                    <div class="surface-link-head">
+                        <div>
+                            <span class="footer-label">@festival.Name</span>
+                            <h3>@entry.Title</h3>
+                        </div>
+                        <span class="pill">@entry.InheritanceStatus</span>
+                    </div>
                     <p>@entry.Summary</p>
-                    <p class="muted">@region.FullPath</p>
-                    <p class="muted">@entry.InheritanceStatus</p>
-                    <a asp-action="Details" asp-route-id="@entry.Id">查看细则</a>
+                    <div class="meta-list">
+                        <span>@region.FullPath</span>
+                        <span>@festival.LunarLabel</span>
+                    </div>
+                    <a class="text-link" asp-action="Details" asp-route-id="@entry.Id">查看习俗详情</a>
                 </article>
             }
         </div>

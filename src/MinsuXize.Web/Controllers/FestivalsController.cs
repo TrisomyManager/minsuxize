@@ -15,6 +15,7 @@ public sealed class FestivalsController : Controller
 
     public IActionResult Index()
     {
+        ViewData["MetaDescription"] = "按节日、节气和时间节点查看不同地区的民俗差异，横向比较相同节日下的具体做法。";
         return View(_repository.GetFestivals());
     }
 
@@ -25,6 +26,8 @@ public sealed class FestivalsController : Controller
         {
             return NotFound();
         }
+
+        ViewData["MetaDescription"] = festival.Summary;
 
         var viewModel = new FestivalDetailsViewModel
         {

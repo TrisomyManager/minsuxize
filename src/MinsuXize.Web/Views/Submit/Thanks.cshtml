@@ -1,220 +1,145 @@
 @model MinsuXize.Web.Models.SubmissionRecord
 @{
-    ViewData["Title"] = "投稿已提交";
-    
-    string GetStatusText(SubmissionStatus status)
-    {
-        return status switch
+    ViewData["Title"] = "提交成功";
+
+    string GetStatusText(SubmissionStatus status) =>
+        status switch
         {
             SubmissionStatus.PendingReview => "待审核",
-            SubmissionStatus.NeedsRevision => "需要修改",
-            SubmissionStatus.Approved => "已通过",
-            SubmissionStatus.Rejected => "已拒绝",
+            SubmissionStatus.NeedsRevision => "已退回补充",
+            SubmissionStatus.Approved => "已发布",
+            SubmissionStatus.Rejected => "已归档",
             _ => status.ToString()
         };
-    }
+
+    string GetStatusClass(SubmissionStatus status) =>
+        status switch
+        {
+            SubmissionStatus.PendingReview => "pending",
+            SubmissionStatus.NeedsRevision => "revision",
+            SubmissionStatus.Approved => "approved",
+            SubmissionStatus.Rejected => "rejected",
+            _ => "pending"
+        };
 }
 
 <section class="page-header">
-    <span class="eyebrow">投稿成功</span>
-    <h1>你的投稿已经提交成功</h1>
-    <p>内容将进入管理员审核流程。审核通过后，才会对外公开展示。</p>
+    <span class="eyebrow">提交成功</span>
+    <h1>你的补充已经收到</h1>
+    <p>感谢你补充地方习俗资料。我们会先查看信息是否清楚，再决定是继续整理、补充核对，还是暂时归档保留。</p>
 </section>
 
-<section class="panel-card success-card">
-    <h2>@Model.Title</h2>
-    <p>@Model.Summary</p>
-    
-    <div class="submission-details">
-        <h3>投稿详情</h3>
-        <div class="detail-grid">
-            <div class="detail-item">
-                <strong>投稿编号：</strong> #@Model.Id
+<section class="content-section split-layout">
+    <article class="section-panel">
+        <span class="eyebrow">本次提交</span>
+        <h2>@Model.Title</h2>
+        <p>@Model.Summary</p>
+        <div class="meta-list">
+            <span>编号 #@Model.Id</span>
+            <span class="status-chip @GetStatusClass(Model.Status)">@GetStatusText(Model.Status)</span>
+            <span>提交时间 @Model.SubmittedAt.ToLocalTime().ToString("yyyy-MM-dd HH:mm")</span>
+        </div>
+
+        <div class="content-section detail-grid">
+            <div class="detail-grid-block">
+                <span class="footer-label">提交人</span>
+                <h3>@Model.ContributorName</h3>
+                @if (!string.IsNullOrWhiteSpace(Model.Contact))
+                {
+                    <p class="helper-copy">@Model.Contact</p>
+                }
             </div>
-            <div class="detail-item">
-                <strong>投稿人：</strong> @Model.ContributorName
-            </div>
-            <div class="detail-item">
-                <strong>当前状态：</strong> <span class="status-badge status-@Model.Status.ToString().ToLower()">@GetStatusText(Model.Status)</span>
-            </div>
-            <div class="detail-item">
-                <strong>提交时间：</strong> @Model.SubmittedAt.ToLocalTime().ToString("yyyy-MM-dd HH:mm")
-            </div>
-            <div class="detail-item">
-                <strong>创建时间：</strong> @Model.CreatedAt.ToLocalTime().ToString("yyyy-MM-dd HH:mm")
-            </div>
-            <div class="detail-item">
-                <strong>版本：</strong> v@Model.Version
+            <div class="detail-grid-block">
+                <span class="footer-label">记录信息</span>
+                <h3>v@(Model.Version)</h3>
+                <p class="helper-copy">
+                    创建时间：
+                    @(Model.CreatedAt == default ? "待写入" : Model.CreatedAt.ToLocalTime().ToString("yyyy-MM-dd HH:mm"))
+                </p>
             </div>
         </div>
-        
-        @if (!string.IsNullOrEmpty(Model.ChangeLog))
+
+        @if (!string.IsNullOrWhiteSpace(Model.ChangeLog))
         {
-            <div class="detail-section">
-                <h4>变更说明</h4>
+            <section class="content-section section-panel">
+                <span class="eyebrow">补充说明</span>
+                <h3>这次主要补充了什么</h3>
                 <p>@Model.ChangeLog</p>
-            </div>
+            </section>
         }
-        
-        @if (Model.Images?.Any() == true)
+    </article>
+
+    <aside class="section-panel">
+        <span class="eyebrow">接下来</span>
+        <h2>后续会如何处理</h2>
+        <ul class="compact-list">
+            <li>会先查看地点、摘要和来源说明是否清楚</li>
+            <li>如果还需要补充，状态会调整为“已退回补充”</li>
+            <li>确认可用后，会进入“已发布”状态继续整理</li>
+        </ul>
+        <div class="utility-actions">
+            <a class="button-primary" asp-controller="Entries" asp-action="Index">继续浏览习俗</a>
+            <a class="button-secondary" asp-action="Create">再提交一条补充</a>
+        </div>
+    </aside>
+</section>
+
+@if (Model.Images.Any() || Model.Videos.Any() || Model.Audios.Any() || Model.Location is not null)
+{
+    <section class="content-section detail-grid">
+        @if (Model.Images.Any())
         {
-            <div class="detail-section">
-                <h4>图片链接 (@Model.Images.Count 个)</h4>
-                <ul class="link-list">
+            <section class="media-panel">
+                <span class="eyebrow">图片</span>
+                <h3>图片链接</h3>
+                <ul class="media-links">
                     @foreach (var image in Model.Images)
                     {
                         <li><a href="@image" target="_blank">@image</a></li>
                     }
                 </ul>
-            </div>
+            </section>
         }
-        
-        @if (Model.Videos?.Any() == true)
+
+        @if (Model.Videos.Any())
         {
-            <div class="detail-section">
-                <h4>视频链接 (@Model.Videos.Count 个)</h4>
-                <ul class="link-list">
+            <section class="media-panel">
+                <span class="eyebrow">视频</span>
+                <h3>视频链接</h3>
+                <ul class="media-links">
                     @foreach (var video in Model.Videos)
                     {
                         <li><a href="@video" target="_blank">@video</a></li>
                     }
                 </ul>
-            </div>
+            </section>
         }
-        
-        @if (Model.Audios?.Any() == true)
+
+        @if (Model.Audios.Any())
         {
-            <div class="detail-section">
-                <h4>音频链接 (@Model.Audios.Count 个)</h4>
-                <ul class="link-list">
+            <section class="media-panel">
+                <span class="eyebrow">音频</span>
+                <h3>音频链接</h3>
+                <ul class="media-links">
                     @foreach (var audio in Model.Audios)
                     {
                         <li><a href="@audio" target="_blank">@audio</a></li>
                     }
                 </ul>
-            </div>
+            </section>
         }
-        
-        @if (Model.Location != null)
+
+        @if (Model.Location is not null)
         {
-            <div class="detail-section">
-                <h4>地理位置</h4>
-                <p>
-                    坐标：@Model.Location.Latitude, @Model.Location.Longitude<br />
-                    @if (!string.IsNullOrEmpty(Model.Location.Address))
-                    {
-                        <span>地址：@Model.Location.Address</span>
-                    }
-                </p>
-            </div>
+            <section class="location-panel">
+                <span class="eyebrow">地点</span>
+                <h3>位置补充</h3>
+                <p>@Model.Location.Latitude, @Model.Location.Longitude</p>
+                @if (!string.IsNullOrWhiteSpace(Model.Location.Address))
+                {
+                    <p class="muted">@Model.Location.Address</p>
+                }
+            </section>
         }
-    </div>
-    
-    <div class="hero-actions">
-        <a class="button-primary" asp-controller="Entries" asp-action="Index">继续浏览细则</a>
-        <a class="button-secondary" asp-action="Create">继续投稿</a>
-    </div>
-</section>
-
-<style>
-.submission-details {
-    margin: 2rem 0;
-    padding: 1.5rem;
-    background: #f8f9fa;
-    border-radius: 8px;
-    border-left: 4px solid #007bff;
+    </section>
 }
-
-.submission-details h3 {
-    margin-top: 0;
-    color: #333;
-    border-bottom: 1px solid #dee2e6;
-    padding-bottom: 0.5rem;
-}
-
-.detail-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-    gap: 1rem;
-    margin: 1rem 0;
-}
-
-.detail-item {
-    padding: 0.5rem;
-    background: white;
-    border-radius: 4px;
-    border: 1px solid #dee2e6;
-}
-
-.detail-section {
-    margin: 1.5rem 0;
-    padding: 1rem;
-    background: white;
-    border-radius: 6px;
-    border: 1px solid #e9ecef;
-}
-
-.detail-section h4 {
-    margin-top: 0;
-    color: #495057;
-    border-bottom: 1px solid #dee2e6;
-    padding-bottom: 0.5rem;
-}
-
-.link-list {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-}
-
-.link-list li {
-    padding: 0.25rem 0;
-    border-bottom: 1px solid #f1f3f5;
-}
-
-.link-list li:last-child {
-    border-bottom: none;
-}
-
-.link-list a {
-    color: #007bff;
-    text-decoration: none;
-    word-break: break-all;
-}
-
-.link-list a:hover {
-    text-decoration: underline;
-}
-
-.status-badge {
-    display: inline-block;
-    padding: 0.25rem 0.75rem;
-    border-radius: 12px;
-    font-size: 0.875rem;
-    font-weight: 500;
-}
-
-.status-pendingreview {
-    background-color: #fff3cd;
-    color: #856404;
-    border: 1px solid #ffeaa7;
-}
-
-.status-needsrevision {
-    background-color: #f8d7da;
-    color: #721c24;
-    border: 1px solid #f5c6cb;
-}
-
-.status-approved {
-    background-color: #d4edda;
-    color: #155724;
-    border: 1px solid #c3e6cb;
-}
-
-.status-rejected {
-    background-color: #f8d7da;
-    color: #721c24;
-    border: 1px solid #f5c6cb;
-}
-</style>

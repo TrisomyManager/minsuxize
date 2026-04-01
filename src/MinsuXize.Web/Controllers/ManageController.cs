@@ -21,9 +21,24 @@ public sealed class ManageController : Controller
     }
 
     [AllowAnonymous]
+    [HttpGet("")]
+    public IActionResult Index()
+    {
+        if (User.Identity?.IsAuthenticated == true)
+        {
+            return RedirectToAction("Index", "Admin");
+        }
+
+        return RedirectToAction(nameof(Login));
+    }
+
+    [AllowAnonymous]
     [HttpGet("login")]
     public IActionResult Login(string? returnUrl = null)
     {
+        ViewData["Title"] = "后台登录";
+        ViewData["MetaDescription"] = "仅供资料整理使用的后台登录入口。";
+        ViewData["MetaRobots"] = "noindex, nofollow, noarchive";
         return View(new AdminLoginViewModel { ReturnUrl = returnUrl });
     }
 
@@ -32,6 +47,10 @@ public sealed class ManageController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Login(AdminLoginViewModel model)
     {
+        ViewData["Title"] = "后台登录";
+        ViewData["MetaDescription"] = "仅供资料整理使用的后台登录入口。";
+        ViewData["MetaRobots"] = "noindex, nofollow, noarchive";
+
         if (!ModelState.IsValid)
         {
             return View(model);
@@ -78,11 +97,9 @@ public sealed class ManageController : Controller
         return RedirectToAction(nameof(Login));
     }
 
-    private bool CredentialsMatch(string username, string password)
-    {
-        return FixedTimeEquals(username, _adminAuthOptions.Username) &&
-               FixedTimeEquals(password, _adminAuthOptions.Password);
-    }
+    private bool CredentialsMatch(string username, string password) =>
+        FixedTimeEquals(username, _adminAuthOptions.Username) &&
+        FixedTimeEquals(password, _adminAuthOptions.Password);
 
     private static bool FixedTimeEquals(string left, string right)
     {

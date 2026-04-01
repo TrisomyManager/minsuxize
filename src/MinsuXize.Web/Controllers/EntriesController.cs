@@ -6,6 +6,7 @@ using MinsuXize.Web.ViewModels;
 
 namespace MinsuXize.Web.Controllers;
 
+[Route("entries")]
 public sealed class EntriesController : Controller
 {
     private readonly IFolkloreRepository _repository;
@@ -15,14 +16,19 @@ public sealed class EntriesController : Controller
         _repository = repository;
     }
 
-    public IActionResult Index(string? keyword, int? regionId, int? festivalId)
+    [HttpGet("")]
+    public IActionResult Index(string? keyword, int? regionId, int? festivalId, string? inheritanceStatus)
     {
         var regions = _repository.GetRegions();
         var festivals = _repository.GetFestivals();
+        var allEntries = _repository.GetEntries();
         var regionsById = regions.ToDictionary(item => item.Id);
         var festivalsById = festivals.ToDictionary(item => item.Id);
 
-        var entries = _repository.GetEntries().AsEnumerable();
+        ViewData["Title"] = "习俗列表";
+        ViewData["MetaDescription"] = "按关键词、地区、节令和存续状态筛选地方习俗记录，快速浏览当前公开内容。";
+
+        var entries = allEntries.AsEnumerable();
 
         if (regionId.HasValue)
         {
@@ -33,6 +39,12 @@ public sealed class EntriesController : Controller
         if (festivalId.HasValue)
         {
             entries = entries.Where(item => item.FestivalId == festivalId.Value);
+        }
+
+        if (!string.IsNullOrWhiteSpace(inheritanceStatus))
+        {
+            var normalizedStatus = inheritanceStatus.Trim();
+            entries = entries.Where(item => item.InheritanceStatus.Equals(normalizedStatus, StringComparison.OrdinalIgnoreCase));
         }
 
         if (!string.IsNullOrWhiteSpace(keyword))
@@ -46,16 +58,23 @@ public sealed class EntriesController : Controller
                     festivalsById.GetValueOrDefault(item.FestivalId)));
         }
 
+        var filteredEntries = entries
+            .OrderByDescending(item => item.UpdatedAt)
+            .ThenBy(item => item.Title)
+            .ToList();
+
         var viewModel = new EntrySearchViewModel
         {
             Keyword = keyword,
             RegionId = regionId,
             FestivalId = festivalId,
-            Entries = entries.ToList(),
+            InheritanceStatus = inheritanceStatus,
+            Entries = filteredEntries,
             RegionsById = regionsById,
             FestivalsById = festivalsById,
             RegionOptions = RegionPresentation.BuildRegionOptions(regions, regionId, "国家"),
             FestivalOptions = BuildFestivalOptions(festivals, festivalId),
+            InheritanceStatusOptions = BuildInheritanceStatusOptions(allEntries, inheritanceStatus),
             SelectedRegionLabel = regionId.HasValue && regionsById.TryGetValue(regionId.Value, out var selectedRegion)
                 ? selectedRegion.FullPath
                 : null
@@ -64,6 +83,7 @@ public sealed class EntriesController : Controller
         return View(viewModel);
     }
 
+    [HttpGet("{id:int}")]
     public IActionResult Details(int id)
     {
         var entry = _repository.GetEntryById(id);
@@ -79,6 +99,8 @@ public sealed class EntriesController : Controller
             return NotFound();
         }
 
+        ViewData["MetaDescription"] = entry.Summary;
+
         var viewModel = new EntryDetailsViewModel
         {
             Entry = entry,
@@ -92,7 +114,18 @@ public sealed class EntriesController : Controller
 
     private static IReadOnlyList<SelectListItem> BuildFestivalOptions(IReadOnlyList<Festival> festivals, int? selectedId) =>
         festivals
-            .Select(item => new SelectListItem($"{item.Name} · {item.LunarLabel}", item.Id.ToString(), item.Id == selectedId))
+            .Select(item => new SelectListItem($"{item.Name} | {item.LunarLabel}", item.Id.ToString(), item.Id == selectedId))
+            .ToList();
+
+    private static IReadOnlyList<SelectListItem> BuildInheritanceStatusOptions(
+        IReadOnlyList<FolkloreEntry> entries,
+        string? selectedStatus) =>
+        entries
+            .Select(item => item.InheritanceStatus)
+            .Where(value => !string.IsNullOrWhiteSpace(value))
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .OrderBy(value => value, StringComparer.OrdinalIgnoreCase)
+            .Select(value => new SelectListItem(value, value, value.Equals(selectedStatus, StringComparison.OrdinalIgnoreCase)))
             .ToList();
 
     private static bool MatchesKeyword(FolkloreEntry entry, string keyword, Region? region, Festival? festival) =>

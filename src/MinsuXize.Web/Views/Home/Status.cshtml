@@ -1,0 +1,30 @@
+@model MinsuXize.Web.ViewModels.StatusPageViewModel
+
+<section class="page-header">
+    <span class="eyebrow">@Model.Eyebrow</span>
+    <h1>@Model.Heading</h1>
+    <p>@Model.Description</p>
+</section>
+
+<section class="content-section policy-grid">
+    <article class="section-panel copy-stack">
+        <span class="eyebrow">页面状态</span>
+        <h2>状态码 @Model.StatusCode</h2>
+        <p>@Model.Guidance</p>
+        <div class="utility-actions">
+            <a class="button-primary" asp-controller="Home" asp-action="Index">返回首页</a>
+            <a class="button-secondary" asp-controller="Entries" asp-action="Index">打开习俗列表</a>
+        </div>
+    </article>
+
+    <article class="section-panel copy-stack">
+        <span class="eyebrow">继续浏览</span>
+        <h2>你也可以从这些入口继续</h2>
+        <ul class="compact-list">
+            <li><a class="text-link" asp-controller="Regions" asp-action="Index">地区目录</a></li>
+            <li><a class="text-link" asp-controller="Festivals" asp-action="Index">节令目录</a></li>
+            <li><a class="text-link" asp-controller="Submit" asp-action="Create">提交线索</a></li>
+            <li><a class="text-link" asp-controller="Home" asp-action="SubmissionGuidelines">查看提交说明</a></li>
+        </ul>
+    </article>
+</section>

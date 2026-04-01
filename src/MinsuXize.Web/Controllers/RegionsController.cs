@@ -18,6 +18,8 @@ public sealed class RegionsController : Controller
         var regions = _repository.GetRegions();
         var trimmedKeyword = string.IsNullOrWhiteSpace(keyword) ? null : keyword.Trim();
 
+        ViewData["MetaDescription"] = "从省、市、县、乡镇和村落等行政层级进入地方民俗内容，查看某个地区已收录的节日与做法。";
+
         IReadOnlyList<MinsuXize.Web.Models.Region> displayRegions = trimmedKeyword is null
             ? regions.Where(item => item.ParentId == 1).OrderBy(item => item.Id).ToList()
             : regions
@@ -44,6 +46,8 @@ public sealed class RegionsController : Controller
         {
             return NotFound();
         }
+
+        ViewData["MetaDescription"] = region.Summary;
 
         var viewModel = new RegionDetailsViewModel
         {

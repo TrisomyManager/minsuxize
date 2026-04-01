@@ -23,7 +23,6 @@ public sealed class AdminController : Controller
         var regions = _repository.GetRegions().ToDictionary(item => item.Id);
         var festivals = _repository.GetFestivals().ToDictionary(item => item.Id);
 
-        ViewData["IsAdminPage"] = true;
         ViewData["AdminUsername"] = User.Identity?.Name;
 
         var viewModel = new AdminDashboardViewModel
@@ -47,8 +46,21 @@ public sealed class AdminController : Controller
     
     [HttpPost("bulk-update")]
     [ValidateAntiForgeryToken]
-    public IActionResult BulkReview(List<int> submissionIds, SubmissionStatus status, string? reviewerNote)
+    public IActionResult BulkReview(string? submissionIdsRaw, SubmissionStatus status, string? reviewerNote)
     {
+        var submissionIds = (submissionIdsRaw ?? string.Empty)
+            .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+            .Select(value => int.TryParse(value, out var parsed) ? parsed : (int?)null)
+            .Where(value => value.HasValue)
+            .Select(value => value!.Value)
+            .Distinct()
+            .ToList();
+
+        if (submissionIds.Count == 0)
+        {
+            return RedirectToAction(nameof(Index));
+        }
+
         var reviewerName = User.Identity?.Name ?? "Unknown";
         _repository.BulkUpdateSubmissionStatus(submissionIds, status, reviewerNote, reviewerName);
         return RedirectToAction(nameof(Index));
@@ -65,7 +77,6 @@ public sealed class AdminController : Controller
         
         var history = _repository.GetReviewHistory(id);
         
-        ViewData["IsAdminPage"] = true;
         ViewData["AdminUsername"] = User.Identity?.Name;
         
         return View(new ReviewHistoryViewModel

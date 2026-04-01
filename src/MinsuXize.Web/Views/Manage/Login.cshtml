@@ -1,37 +1,37 @@
 @model MinsuXize.Web.ViewModels.AdminLoginViewModel
 @{
-    ViewData["Title"] = "管理员登录";
+    ViewData["MetaRobots"] = "noindex, nofollow, noarchive";
 }
 
 <section class="page-header">
-    <span class="eyebrow">管理员入口</span>
-    <h1>登录后进入审核页面</h1>
-    <p>审核不对普通用户开放，只有管理员登录后才能处理投稿。</p>
+    <span class="eyebrow">资料整理入口</span>
+    <h1>进入反馈整理后台</h1>
+    <p>
+        这里用于查看读者提交的补充和纠错、记录处理意见并调整状态，
+        不对公众开放。
+    </p>
 </section>
 
-<section class="form-shell admin-login-shell">
-    <form asp-action="Login" method="post" class="entry-form">
+<section class="content-section auth-shell">
+    <form asp-action="Login" method="post" class="auth-form">
         <input type="hidden" asp-for="ReturnUrl" />
         <div asp-validation-summary="ModelOnly" class="validation-summary"></div>
 
         <div class="field-group">
             <label asp-for="Username"></label>
-            <input asp-for="Username" class="field-input" autocomplete="username" />
+            <input asp-for="Username" class="field-input" autocomplete="username" placeholder="请输入管理员账号" />
             <span asp-validation-for="Username" class="field-error"></span>
         </div>
 
         <div class="field-group">
             <label asp-for="Password"></label>
-            <input asp-for="Password" class="field-input" autocomplete="current-password" />
+            <input asp-for="Password" class="field-input" autocomplete="current-password" placeholder="请输入管理员密码" />
             <span asp-validation-for="Password" class="field-error"></span>
         </div>
 
         <div class="form-actions">
-            <button type="submit" class="button-primary">进入审核页</button>
+            <button type="submit" class="button-primary">进入后台</button>
+            <a class="button-secondary" asp-controller="Home" asp-action="Index">返回公众页面</a>
         </div>
     </form>
 </section>
-
-@section Scripts {
-    <partial name="_ValidationScriptsPartial" />
-}

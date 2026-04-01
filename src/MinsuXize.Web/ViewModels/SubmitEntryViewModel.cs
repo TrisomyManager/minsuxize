@@ -6,8 +6,11 @@ namespace MinsuXize.Web.ViewModels;
 
 public sealed class SubmitEntryViewModel
 {
-    [Required(ErrorMessage = "请填写投稿人姓名")]
-    [Display(Name = "投稿人")]
+    public int? RelatedEntryId { get; set; }
+    public string? RelatedEntryTitle { get; set; }
+
+    [Required(ErrorMessage = "请填写反馈人")]
+    [Display(Name = "反馈人")]
     public string ContributorName { get; set; } = string.Empty;
 
     [Required(ErrorMessage = "请选择地区")]
@@ -18,14 +21,14 @@ public sealed class SubmitEntryViewModel
     [Display(Name = "节日或时间节点")]
     public int? FestivalId { get; set; }
 
-    [Required(ErrorMessage = "请填写条目标题")]
+    [Required(ErrorMessage = "请填写标题")]
     [StringLength(100)]
-    [Display(Name = "条目标题")]
+    [Display(Name = "标题")]
     public string Title { get; set; } = string.Empty;
 
-    [Required(ErrorMessage = "请填写民俗内容摘要")]
+    [Required(ErrorMessage = "请填写内容摘要")]
     [StringLength(1200)]
-    [Display(Name = "民俗内容摘要")]
+    [Display(Name = "内容摘要")]
     public string Summary { get; set; } = string.Empty;
 
     [Required(ErrorMessage = "请填写来源说明")]
@@ -37,16 +40,15 @@ public sealed class SubmitEntryViewModel
     [StringLength(120)]
     public string? Contact { get; set; }
 
-    // 新增字段
-    [Display(Name = "图片链接（多个链接用逗号分隔）")]
+    [Display(Name = "图片链接")]
     [StringLength(2000)]
     public string? ImagesInput { get; set; }
 
-    [Display(Name = "视频链接（多个链接用逗号分隔）")]
+    [Display(Name = "视频链接")]
     [StringLength(2000)]
     public string? VideosInput { get; set; }
 
-    [Display(Name = "音频链接（多个链接用逗号分隔）")]
+    [Display(Name = "音频链接")]
     [StringLength(2000)]
     public string? AudiosInput { get; set; }
 
@@ -62,36 +64,35 @@ public sealed class SubmitEntryViewModel
     [StringLength(500)]
     public string? Address { get; set; }
 
-    [Display(Name = "变更说明")]
+    [Display(Name = "本次补充说明")]
     [StringLength(500)]
     public string? ChangeLog { get; set; }
 
     public IReadOnlyList<SelectListItem> Regions { get; set; } = [];
     public IReadOnlyList<SelectListItem> Festivals { get; set; } = [];
 
-    // 便捷方法：将逗号分隔的字符串转换为列表
-    public List<string> GetImagesList() => 
-        string.IsNullOrWhiteSpace(ImagesInput) 
-            ? new List<string>() 
+    public List<string> GetImagesList() =>
+        string.IsNullOrWhiteSpace(ImagesInput)
+            ? []
             : ImagesInput.Split(',', StringSplitOptions.RemoveEmptyEntries)
-                .Select(s => s.Trim())
-                .Where(s => !string.IsNullOrWhiteSpace(s))
+                .Select(value => value.Trim())
+                .Where(value => !string.IsNullOrWhiteSpace(value))
                 .ToList();
 
-    public List<string> GetVideosList() => 
-        string.IsNullOrWhiteSpace(VideosInput) 
-            ? new List<string>() 
+    public List<string> GetVideosList() =>
+        string.IsNullOrWhiteSpace(VideosInput)
+            ? []
             : VideosInput.Split(',', StringSplitOptions.RemoveEmptyEntries)
-                .Select(s => s.Trim())
-                .Where(s => !string.IsNullOrWhiteSpace(s))
+                .Select(value => value.Trim())
+                .Where(value => !string.IsNullOrWhiteSpace(value))
                 .ToList();
 
-    public List<string> GetAudiosList() => 
-        string.IsNullOrWhiteSpace(AudiosInput) 
-            ? new List<string>() 
+    public List<string> GetAudiosList() =>
+        string.IsNullOrWhiteSpace(AudiosInput)
+            ? []
             : AudiosInput.Split(',', StringSplitOptions.RemoveEmptyEntries)
-                .Select(s => s.Trim())
-                .Where(s => !string.IsNullOrWhiteSpace(s))
+                .Select(value => value.Trim())
+                .Where(value => !string.IsNullOrWhiteSpace(value))
                 .ToList();
 
     public LocationInfo? GetLocationInfo()
@@ -103,9 +104,10 @@ public sealed class SubmitEntryViewModel
                 Latitude = Latitude.Value,
                 Longitude = Longitude.Value,
                 Address = Address,
-                Description = $"用户提交的位置：{Address}"
+                Description = string.IsNullOrWhiteSpace(Address) ? "用户补充的位置线索" : $"用户补充的位置线索：{Address}"
             };
         }
+
         return null;
     }
 }

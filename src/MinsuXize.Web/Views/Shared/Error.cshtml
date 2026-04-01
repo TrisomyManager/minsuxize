@@ -1,25 +1,40 @@
-﻿@model ErrorViewModel
+@model ErrorViewModel
 @{
-    ViewData["Title"] = "Error";
+    ViewData["MetaRobots"] = "noindex, nofollow, noarchive";
 }
 
-<h1 class="text-danger">Error.</h1>
-<h2 class="text-danger">An error occurred while processing your request.</h2>
+<section class="page-header">
+    <span class="eyebrow">页面异常</span>
+    <h1>这个页面暂时无法正常打开</h1>
+    <p>请求已经到达站点，但在处理过程中出现了异常。你可以稍后重试，或先返回公开页面继续浏览。</p>
+</section>
 
-@if (Model.ShowRequestId)
-{
-    <p>
-        <strong>Request ID:</strong> <code>@Model.RequestId</code>
-    </p>
-}
+<section class="content-section policy-grid">
+    <article class="section-panel copy-stack">
+        <span class="eyebrow">现在可以这样做</span>
+        <h2>继续浏览公开内容</h2>
+        <ul class="compact-list">
+            <li>返回首页继续浏览已公开的内容</li>
+            <li>从地区目录、节令目录或习俗列表重新进入</li>
+            <li>如果问题持续存在，可以记录访问时间和页面路径，便于后续核对</li>
+        </ul>
+        <div class="utility-actions">
+            <a class="button-primary" asp-controller="Home" asp-action="Index">返回首页</a>
+            <a class="button-secondary" asp-controller="Entries" asp-action="Index">打开习俗列表</a>
+        </div>
+    </article>
 
-<h3>Development Mode</h3>
-<p>
-    Swapping to <strong>Development</strong> environment will display more detailed information about the error that occurred.
-</p>
-<p>
-    <strong>The Development environment shouldn't be enabled for deployed applications.</strong>
-    It can result in displaying sensitive information from exceptions to end users.
-    For local debugging, enable the <strong>Development</strong> environment by setting the <strong>ASPNETCORE_ENVIRONMENT</strong> environment variable to <strong>Development</strong>
-    and restarting the app.
-</p>
+    <article class="section-panel copy-stack">
+        <span class="eyebrow">参考信息</span>
+        <h2>页面参考编号</h2>
+        @if (Model.ShowRequestId)
+        {
+            <p><strong>参考编号：</strong><code>@Model.RequestId</code></p>
+        }
+        else
+        {
+            <p>当前没有可显示的参考编号。</p>
+        }
+        <p class="helper-copy">如果你需要反馈这个问题，附上参考编号会更方便后续查找。</p>
+    </article>
+</section>

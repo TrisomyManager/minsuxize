@@ -7,10 +7,15 @@
     <span class="eyebrow">@Model.Festival.Category</span>
     <h1>@Model.Festival.Name</h1>
     <p>@Model.Festival.Summary</p>
-    <p class="muted">@Model.Festival.LunarLabel</p>
+    <div class="meta-list">
+        <span>@Model.Festival.LunarLabel</span>
+        <span>关联条目 @Model.Entries.Count 条</span>
+    </div>
 </section>
 
-<section class="content-section">
+<section class="content-section section-panel">
+    <span class="eyebrow">Topics</span>
+    <h2>这个节日通常围绕什么内容展开</h2>
     <div class="pill-grid">
         @foreach (var topic in Model.Festival.CoreTopics)
         {
@@ -21,19 +26,35 @@
 
 <section class="content-section">
     <div class="section-heading">
+        <span class="eyebrow">Entries</span>
         <h2>关联条目</h2>
-        <p>这里展示同一节日在不同地区的记录，方便以后横向对照。</p>
+        <p>这里聚合同一节日在不同地区的记录，便于比较流程、参与者、供品与地方差异。</p>
     </div>
-    <div class="card-grid">
-        @foreach (var entry in Model.Entries)
-        {
-            <article class="info-card">
-                <span class="tag">民俗条目</span>
-                <h3>@entry.Title</h3>
-                <p>@entry.Summary</p>
-                <p class="muted">@entry.InheritanceStatus</p>
-                <a asp-controller="Entries" asp-action="Details" asp-route-id="@entry.Id">查看条目</a>
-            </article>
-        }
-    </div>
+
+    @if (Model.Entries.Count == 0)
+    {
+        <div class="empty-state">
+            <h3>这个节日还没有关联条目</h3>
+            <p>如果你掌握相关地方做法，可以补充一条线索进入审核流程。</p>
+            <a class="button-primary" asp-controller="Submit" asp-action="Create">补充节日线索</a>
+        </div>
+    }
+    else
+    {
+        <div class="result-grid">
+            @foreach (var entry in Model.Entries)
+            {
+                <article class="surface-card">
+                    <span class="footer-label">民俗细则</span>
+                    <h3>@entry.Title</h3>
+                    <p>@entry.Summary</p>
+                    <div class="chip-row">
+                        <span class="pill">@entry.InheritanceStatus</span>
+                        <span class="pill">v@(entry.Version)</span>
+                    </div>
+                    <a class="text-link" asp-controller="Entries" asp-action="Details" asp-route-id="@entry.Id">查看细则详情</a>
+                </article>
+            }
+        </div>
+    }
 </section>
