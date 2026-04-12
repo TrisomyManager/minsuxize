@@ -1,0 +1,109 @@
+@model MinsuXize.Web.ViewModels.ReviewHistoryViewModel
+@{
+    ViewData["Title"] = "处理记录";
+
+    string GetStatusText(MinsuXize.Web.Models.SubmissionStatus status) =>
+        status switch
+        {
+            MinsuXize.Web.Models.SubmissionStatus.PendingReview => "待审核",
+            MinsuXize.Web.Models.SubmissionStatus.NeedsRevision => "已退回补充",
+            MinsuXize.Web.Models.SubmissionStatus.Approved => "已发布",
+            MinsuXize.Web.Models.SubmissionStatus.Rejected => "已归档",
+            _ => status.ToString()
+        };
+
+    string GetStatusClass(MinsuXize.Web.Models.SubmissionStatus status) =>
+        status switch
+        {
+            MinsuXize.Web.Models.SubmissionStatus.PendingReview => "pending",
+            MinsuXize.Web.Models.SubmissionStatus.NeedsRevision => "revision",
+            MinsuXize.Web.Models.SubmissionStatus.Approved => "approved",
+            MinsuXize.Web.Models.SubmissionStatus.Rejected => "rejected",
+            _ => "pending"
+        };
+}
+
+<section class="page-header">
+    <span class="eyebrow">处理记录</span>
+    <h1>反馈 #@Model.Submission.Id 的处理过程</h1>
+    <p>这里用于回看这条反馈的状态变化和处理备注，方便整理时核对。</p>
+</section>
+
+<section class="content-section split-layout">
+    <section class="section-panel">
+        <span class="eyebrow">反馈摘要</span>
+        <h2>@Model.Submission.Title</h2>
+        <div class="meta-list">
+            <span class="status-chip @GetStatusClass(Model.Submission.Status)">@GetStatusText(Model.Submission.Status)</span>
+            <span>v@(Model.Submission.Version)</span>
+            <span>@Model.Submission.CreatedAt.ToLocalTime().ToString("yyyy-MM-dd HH:mm")</span>
+        </div>
+        <p><strong>提交人：</strong>@Model.Submission.ContributorName</p>
+        <p><strong>来源说明：</strong>@Model.Submission.SourceSummary</p>
+        @if (!string.IsNullOrWhiteSpace(Model.Submission.ReviewerNote))
+        {
+            <p><strong>当前备注：</strong>@Model.Submission.ReviewerNote</p>
+        }
+    </section>
+
+    <section class="section-panel">
+        <span class="eyebrow">继续处理</span>
+        <h2>后续操作</h2>
+        <p>你可以返回反馈队列继续处理，也可以新建一条测试反馈再次走一遍流程。</p>
+        <div class="utility-actions">
+            <a class="button-secondary" asp-action="Index">返回反馈队列</a>
+            <a class="button-primary" asp-controller="Submit" asp-action="Create">创建新反馈</a>
+        </div>
+    </section>
+</section>
+
+<section class="content-section timeline-shell">
+    <div class="section-heading">
+        <span class="eyebrow">时间线</span>
+        <h2>状态变化记录</h2>
+        <p>用于查看谁在什么时候把这条反馈从什么状态调整到了什么状态。</p>
+    </div>
+
+    @if (Model.History.Any())
+    {
+        <div class="timeline-list">
+            @foreach (var record in Model.History)
+            {
+                <article class="timeline-item">
+                    <div class="timeline-card">
+                        <div class="timeline-head">
+                            <div>
+                                <span class="footer-label">@record.Reviewer</span>
+                                <div class="status-flow">
+                                    <span class="status-chip @GetStatusClass(record.OldStatus)">@GetStatusText(record.OldStatus)</span>
+                                    <span class="history-arrow">到</span>
+                                    <span class="status-chip @GetStatusClass(record.NewStatus)">@GetStatusText(record.NewStatus)</span>
+                                </div>
+                            </div>
+                            <span class="timeline-time">@record.ReviewedAt.ToLocalTime().ToString("yyyy-MM-dd HH:mm")</span>
+                        </div>
+
+                        @if (!string.IsNullOrWhiteSpace(record.ChangeSummary))
+                        {
+                            <p class="timeline-summary">@record.ChangeSummary</p>
+                        }
+
+                        @if (!string.IsNullOrWhiteSpace(record.ReviewerNote))
+                        {
+                            <div class="timeline-note">
+                                <strong>处理备注：</strong>
+                                <div>@record.ReviewerNote</div>
+                            </div>
+                        }
+                    </div>
+                </article>
+            }
+        </div>
+    }
+    else
+    {
+        <div class="empty-state">
+            <p>当前还没有历史记录。</p>
+        </div>
+    }
+</section>

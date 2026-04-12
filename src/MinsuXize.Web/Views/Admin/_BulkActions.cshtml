@@ -1,0 +1,98 @@
+@model MinsuXize.Web.ViewModels.AdminDashboardViewModel
+
+<section class="content-section bulk-shell">
+    <div class="admin-summary">
+        <div class="section-heading">
+            <span class="eyebrow">批量处理</span>
+            <h2>批量处理选中的反馈</h2>
+            <p>适合同一批次的反馈统一调整状态，或补充相同的处理备注。</p>
+        </div>
+
+        <form asp-action="BulkReview" method="post" class="bulk-form">
+            <input type="hidden" name="submissionIdsRaw" id="bulkSubmissionIds" value="" />
+
+            <div class="bulk-form-grid">
+                <div class="bulk-select-panel">
+                    <label class="submission-checkbox-row" for="selectAll">
+                        <input type="checkbox" id="selectAll" />
+                        <span>全选当前列表</span>
+                    </label>
+                    <p class="bulk-meta">已选择 <strong id="bulkSelectionCount">0</strong> 条反馈</p>
+                    <button type="button" class="button-secondary button-small" onclick="clearBulkSelection()">清空选择</button>
+                </div>
+
+                <div class="bulk-controls">
+                    <div class="form-grid">
+                        <div class="field-group">
+                            <label for="bulkStatus">批量设置状态</label>
+                            <select name="status" id="bulkStatus" class="field-input">
+                                <option value="0">待审核</option>
+                                <option value="1">退回补充</option>
+                                <option value="2">发布</option>
+                                <option value="3">归档</option>
+                            </select>
+                        </div>
+                        <div class="field-group">
+                            <label for="bulkReviewerNote">批量处理备注</label>
+                            <textarea name="reviewerNote" id="bulkReviewerNote" rows="3" class="field-input" placeholder="例如：这批资料信息基本完整，可继续整理。"></textarea>
+                        </div>
+                    </div>
+
+                    <div class="utility-actions">
+                        <button type="submit" class="button-primary" onclick="return validateBulkSelection()">执行批量操作</button>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</section>
+
+<script>
+    function selectedSubmissionCheckboxes() {
+        return document.querySelectorAll('.submission-select:checked');
+    }
+
+    function updateBulkSelection() {
+        const checkboxes = selectedSubmissionCheckboxes();
+        const ids = Array.from(checkboxes).map(cb => cb.value);
+        const allCheckboxes = document.querySelectorAll('.submission-select');
+        const selectAll = document.getElementById('selectAll');
+        const selectionCount = document.getElementById('bulkSelectionCount');
+
+        document.getElementById('bulkSubmissionIds').value = ids.join(',');
+        selectionCount.textContent = ids.length.toString();
+
+        selectAll.checked = allCheckboxes.length > 0 && ids.length === allCheckboxes.length;
+        selectAll.indeterminate = ids.length > 0 && ids.length < allCheckboxes.length;
+    }
+
+    function validateBulkSelection() {
+        const ids = document.getElementById('bulkSubmissionIds').value;
+        if (!ids) {
+            alert('请先选择至少一条反馈。');
+            return false;
+        }
+
+        const count = ids.split(',').filter(Boolean).length;
+        return confirm(`确认对 ${count} 条反馈执行批量操作？`);
+    }
+
+    function clearBulkSelection() {
+        document.querySelectorAll('.submission-select').forEach(cb => cb.checked = false);
+        updateBulkSelection();
+    }
+
+    document.addEventListener('change', function (event) {
+        if (event.target.id === 'selectAll') {
+            const checked = event.target.checked;
+            document.querySelectorAll('.submission-select').forEach(cb => cb.checked = checked);
+            updateBulkSelection();
+        }
+
+        if (event.target.classList.contains('submission-select')) {
+            updateBulkSelection();
+        }
+    });
+
+    document.addEventListener('DOMContentLoaded', updateBulkSelection);
+</script>

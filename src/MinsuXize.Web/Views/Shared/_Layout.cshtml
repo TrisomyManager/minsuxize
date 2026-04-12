@@ -1,0 +1,99 @@
+@{
+    var siteName = "中国民俗细则";
+    var request = Context.Request;
+    var pageTitle = ViewData["Title"]?.ToString();
+    var metaDescription = ViewData["MetaDescription"]?.ToString() ?? "面向公众开放的地方习俗资料页，欢迎浏览、补充和纠错。";
+    var metaKeywords = ViewData["MetaKeywords"]?.ToString() ?? "民俗,地方习俗,节日,地方文化,口述资料";
+    var metaRobots = ViewData["MetaRobots"]?.ToString() ?? "index, follow, max-image-preview:large";
+    var fullTitle = string.IsNullOrWhiteSpace(pageTitle) ? siteName : $"{pageTitle} | {siteName}";
+    var canonicalUrl = ViewData["CanonicalUrl"]?.ToString()
+        ?? $"{request.Scheme}://{request.Host}{request.PathBase}{request.Path}{request.QueryString}";
+}
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="@metaDescription" />
+    <meta name="keywords" content="@metaKeywords" />
+    <meta name="robots" content="@metaRobots" />
+    <meta name="theme-color" content="#efe2cf" />
+    <meta name="format-detection" content="telephone=no" />
+    <meta property="og:site_name" content="@siteName" />
+    <meta property="og:locale" content="zh_CN" />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="@fullTitle" />
+    <meta property="og:description" content="@metaDescription" />
+    <meta property="og:url" content="@canonicalUrl" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="@fullTitle" />
+    <meta name="twitter:description" content="@metaDescription" />
+    <title>@fullTitle</title>
+    <link rel="canonical" href="@canonicalUrl" />
+    <link rel="icon" type="image/x-icon" href="~/favicon.ico" />
+    <script type="importmap"></script>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+</head>
+<body class="public-mode">
+    <div class="site-backdrop"></div>
+    <div class="site-shell">
+        <header class="site-header">
+            <div class="shell-inner header-row">
+                <a class="brand-mark" asp-controller="Home" asp-action="Index" aria-label="返回中国民俗细则首页">
+                    <span class="brand-kicker">地方风俗记录</span>
+                    <strong>中国民俗细则</strong>
+                    <span class="brand-note">记录各地仍在流传的做法，欢迎浏览、补充和纠错</span>
+                </a>
+
+                <nav class="site-nav" aria-label="主导航">
+                    <a asp-controller="Home" asp-action="Index">首页</a>
+                    <a asp-controller="Entries" asp-action="Index">习俗浏览</a>
+                    <a asp-controller="Submit" asp-action="Create">提交补充</a>
+                    <a asp-controller="Home" asp-action="About">关于项目</a>
+                </nav>
+
+                <div class="header-actions">
+                    <a class="button-primary button-small" asp-controller="Submit" asp-action="Create">我要补充</a>
+                </div>
+            </div>
+        </header>
+
+        <main role="main" class="shell-inner page-body">
+            @RenderBody()
+        </main>
+
+        <footer class="site-footer">
+            <div class="shell-inner footer-layout">
+                <div>
+                    <span class="eyebrow">持续整理中</span>
+                    <h2>先把看得见、用得上的地方习俗资料整理出来</h2>
+                    <p>
+                        这里收录的是面向公众开放的地方习俗记录。页面内容会继续补充，
+                        如果你发现遗漏、错误或知道更详细的做法，也欢迎告诉我们。
+                    </p>
+                </div>
+                <div class="footer-column">
+                    <span class="footer-label">浏览入口</span>
+                    <a asp-controller="Entries" asp-action="Index">浏览习俗列表</a>
+                    <a asp-controller="Regions" asp-action="Index">按地区查看</a>
+                    <a asp-controller="Festivals" asp-action="Index">按节令查看</a>
+                    <a asp-controller="Home" asp-action="About">了解项目</a>
+                </div>
+                <div class="footer-column">
+                    <span class="footer-label">补充说明</span>
+                    <a asp-controller="Submit" asp-action="Create">提交补充或纠错</a>
+                    <a asp-controller="Home" asp-action="SubmissionGuidelines">提交说明</a>
+                    <a asp-controller="Home" asp-action="Privacy">隐私说明</a>
+                    <a asp-controller="Home" asp-action="Terms">使用条款</a>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

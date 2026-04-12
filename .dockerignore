@@ -1,0 +1,11 @@
+.git
+.gitignore
+.vs
+.artifacts
+output
+src/MinsuXize.Web/bin
+src/MinsuXize.Web/obj
+**/bin
+**/obj
+**/*.user
+App_Data

@@ -1,0 +1,67 @@
+@{
+    var siteName = "中国民俗细则后台";
+    var pageTitle = ViewData["Title"]?.ToString();
+    var metaDescription = ViewData["MetaDescription"]?.ToString() ?? "中国民俗细则的反馈整理后台。";
+    var fullTitle = string.IsNullOrWhiteSpace(pageTitle) ? siteName : $"{pageTitle} | {siteName}";
+    var adminUsername = ViewData["AdminUsername"]?.ToString();
+}
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="@metaDescription" />
+    <meta name="robots" content="noindex, nofollow, noarchive" />
+    <meta name="theme-color" content="#1d2d2c" />
+    <title>@fullTitle</title>
+    <link rel="icon" type="image/x-icon" href="~/favicon.ico" />
+    <script type="importmap"></script>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+</head>
+<body class="admin-mode admin-standalone">
+    <div class="site-backdrop"></div>
+    <div class="site-shell">
+        <header class="admin-topbar">
+            <div class="shell-inner admin-topbar-inner">
+                @if (!string.IsNullOrWhiteSpace(adminUsername))
+                {
+                    <a class="brand-mark" asp-controller="Admin" asp-action="Index" aria-label="返回后台首页">
+                        <span class="brand-kicker">反馈整理后台</span>
+                        <strong>中国民俗细则后台</strong>
+                        <span class="brand-note">查看反馈、记录备注、调整状态</span>
+                    </a>
+                }
+                else
+                {
+                    <a class="brand-mark" asp-controller="Manage" asp-action="Login" aria-label="返回后台登录页">
+                        <span class="brand-kicker">反馈整理后台</span>
+                        <strong>中国民俗细则后台</strong>
+                        <span class="brand-note">查看反馈、记录备注、调整状态</span>
+                    </a>
+                }
+
+                <div class="admin-topbar-actions">
+                    <a class="header-link" asp-controller="Home" asp-action="Index">查看公众页面</a>
+                    @if (!string.IsNullOrWhiteSpace(adminUsername))
+                    {
+                        <span class="admin-user">@adminUsername</span>
+                        <form asp-controller="Manage" asp-action="Logout" method="post">
+                            <button type="submit" class="button-ghost button-small">退出登录</button>
+                        </form>
+                    }
+                </div>
+            </div>
+        </header>
+
+        <main role="main" class="shell-inner page-body admin-page-body">
+            @RenderBody()
+        </main>
+    </div>
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

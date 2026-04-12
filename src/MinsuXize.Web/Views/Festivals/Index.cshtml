@@ -1,0 +1,36 @@
+@model IReadOnlyList<MinsuXize.Web.Models.Festival>
+@{
+    ViewData["Title"] = "节日目录";
+}
+
+<section class="page-header">
+    <span class="eyebrow">Festival Directory</span>
+    <h1>按节日与时间节点组织民俗内容</h1>
+    <p>节日目录用于横向比较：同一节日、同一节气或同一时间节点，在不同地区究竟如何被实践、讲述和传承。</p>
+    <div class="meta-list">
+        <span>当前收录节日与时间节点：@Model.Count 个</span>
+    </div>
+</section>
+
+<section class="content-section result-grid">
+    @foreach (var festival in Model)
+    {
+        <article class="surface-card">
+            <div class="surface-link-head">
+                <div>
+                    <span class="footer-label">@festival.Category</span>
+                    <h3>@festival.Name</h3>
+                </div>
+                <span class="muted">@festival.LunarLabel</span>
+            </div>
+            <p>@festival.Summary</p>
+            <div class="pill-grid">
+                @foreach (var topic in festival.CoreTopics)
+                {
+                    <span class="pill">@topic</span>
+                }
+            </div>
+            <a class="text-link" asp-action="Details" asp-route-id="@festival.Id">查看节日条目</a>
+        </article>
+    }
+</section>

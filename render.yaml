@@ -1,0 +1,21 @@
+services:
+  - type: web
+    name: minsuxize-public-mvp
+    runtime: docker
+    plan: starter
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /healthz
+    autoDeploy: true
+    envVars:
+      - key: ASPNETCORE_ENVIRONMENT
+        value: Production
+      - key: ConnectionStrings__DefaultConnection
+        value: Data Source=/app/App_Data/minsuxize.db
+      - key: AdminAuth__Username
+        sync: false
+      - key: AdminAuth__Password
+        sync: false
+    disk:
+      name: app-data
+      mountPath: /app/App_Data
+      sizeGB: 1

@@ -1,0 +1,60 @@
+@model MinsuXize.Web.ViewModels.RegionIndexViewModel
+@{
+    ViewData["Title"] = "地区目录";
+}
+
+<section class="page-header">
+    <span class="eyebrow">Region Directory</span>
+    <h1>从行政区划进入地方民俗</h1>
+    <p>地区入口适合建立地方语境。先确认一个省、市、县、镇或村，再查看该区域收录的节日与具体做法。</p>
+    <div class="meta-list">
+        <span>当前收录地区节点：@Model.RegionCount 个</span>
+        @if (!string.IsNullOrWhiteSpace(Model.Keyword))
+        {
+            <span>关键词：@Model.Keyword</span>
+        }
+    </div>
+</section>
+
+<section class="content-section search-shell">
+    <form asp-action="Index" method="get" class="search-form">
+        <div class="search-main-row">
+            <input class="search-keyword-input" type="text" name="keyword" value="@Model.Keyword" placeholder="搜索示例：山西省、长治市、秦村、西火镇" />
+            <button type="submit" class="search-submit-button">搜索地区</button>
+        </div>
+    </form>
+</section>
+
+<section class="content-section">
+    <div class="section-heading">
+        <span class="eyebrow">Directory</span>
+        <h2>@(string.IsNullOrWhiteSpace(Model.Keyword) ? "地区总览" : "搜索结果")</h2>
+        <p>@(string.IsNullOrWhiteSpace(Model.Keyword) ? "默认展示顶层地区节点，便于从全国目录向下钻取。" : "以下结果匹配地区名称、完整路径或地区摘要。")</p>
+    </div>
+
+    @if (Model.Regions.Count == 0)
+    {
+        <div class="empty-state">
+            <h3>没有匹配地区</h3>
+            <p>可以尝试更短的关键词，或直接回到首页用地区筛选检索细则。</p>
+        </div>
+    }
+    else
+    {
+        <div class="result-grid">
+            @foreach (var region in Model.Regions)
+            {
+                <a class="surface-link" asp-action="Details" asp-route-id="@region.Id">
+                    <div class="surface-link-head">
+                        <div>
+                            <span class="footer-label">@region.Type</span>
+                            <h3>@region.Name</h3>
+                        </div>
+                    </div>
+                    <p>@region.Summary</p>
+                    <span class="muted">@region.FullPath</span>
+                </a>
+            }
+        </div>
+    }
+</section>

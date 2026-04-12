@@ -1,0 +1,145 @@
+@model MinsuXize.Web.Models.SubmissionRecord
+@{
+    ViewData["Title"] = "提交成功";
+
+    string GetStatusText(SubmissionStatus status) =>
+        status switch
+        {
+            SubmissionStatus.PendingReview => "待审核",
+            SubmissionStatus.NeedsRevision => "已退回补充",
+            SubmissionStatus.Approved => "已发布",
+            SubmissionStatus.Rejected => "已归档",
+            _ => status.ToString()
+        };
+
+    string GetStatusClass(SubmissionStatus status) =>
+        status switch
+        {
+            SubmissionStatus.PendingReview => "pending",
+            SubmissionStatus.NeedsRevision => "revision",
+            SubmissionStatus.Approved => "approved",
+            SubmissionStatus.Rejected => "rejected",
+            _ => "pending"
+        };
+}
+
+<section class="page-header">
+    <span class="eyebrow">提交成功</span>
+    <h1>你的补充已经收到</h1>
+    <p>感谢你补充地方习俗资料。我们会先查看信息是否清楚，再决定是继续整理、补充核对，还是暂时归档保留。</p>
+</section>
+
+<section class="content-section split-layout">
+    <article class="section-panel">
+        <span class="eyebrow">本次提交</span>
+        <h2>@Model.Title</h2>
+        <p>@Model.Summary</p>
+        <div class="meta-list">
+            <span>编号 #@Model.Id</span>
+            <span class="status-chip @GetStatusClass(Model.Status)">@GetStatusText(Model.Status)</span>
+            <span>提交时间 @Model.SubmittedAt.ToLocalTime().ToString("yyyy-MM-dd HH:mm")</span>
+        </div>
+
+        <div class="content-section detail-grid">
+            <div class="detail-grid-block">
+                <span class="footer-label">提交人</span>
+                <h3>@Model.ContributorName</h3>
+                @if (!string.IsNullOrWhiteSpace(Model.Contact))
+                {
+                    <p class="helper-copy">@Model.Contact</p>
+                }
+            </div>
+            <div class="detail-grid-block">
+                <span class="footer-label">记录信息</span>
+                <h3>v@(Model.Version)</h3>
+                <p class="helper-copy">
+                    创建时间：
+                    @(Model.CreatedAt == default ? "待写入" : Model.CreatedAt.ToLocalTime().ToString("yyyy-MM-dd HH:mm"))
+                </p>
+            </div>
+        </div>
+
+        @if (!string.IsNullOrWhiteSpace(Model.ChangeLog))
+        {
+            <section class="content-section section-panel">
+                <span class="eyebrow">补充说明</span>
+                <h3>这次主要补充了什么</h3>
+                <p>@Model.ChangeLog</p>
+            </section>
+        }
+    </article>
+
+    <aside class="section-panel">
+        <span class="eyebrow">接下来</span>
+        <h2>后续会如何处理</h2>
+        <ul class="compact-list">
+            <li>会先查看地点、摘要和来源说明是否清楚</li>
+            <li>如果还需要补充，状态会调整为“已退回补充”</li>
+            <li>确认可用后，会进入“已发布”状态继续整理</li>
+        </ul>
+        <div class="utility-actions">
+            <a class="button-primary" asp-controller="Entries" asp-action="Index">继续浏览习俗</a>
+            <a class="button-secondary" asp-action="Create">再提交一条补充</a>
+        </div>
+    </aside>
+</section>
+
+@if (Model.Images.Any() || Model.Videos.Any() || Model.Audios.Any() || Model.Location is not null)
+{
+    <section class="content-section detail-grid">
+        @if (Model.Images.Any())
+        {
+            <section class="media-panel">
+                <span class="eyebrow">图片</span>
+                <h3>图片链接</h3>
+                <ul class="media-links">
+                    @foreach (var image in Model.Images)
+                    {
+                        <li><a href="@image" target="_blank">@image</a></li>
+                    }
+                </ul>
+            </section>
+        }
+
+        @if (Model.Videos.Any())
+        {
+            <section class="media-panel">
+                <span class="eyebrow">视频</span>
+                <h3>视频链接</h3>
+                <ul class="media-links">
+                    @foreach (var video in Model.Videos)
+                    {
+                        <li><a href="@video" target="_blank">@video</a></li>
+                    }
+                </ul>
+            </section>
+        }
+
+        @if (Model.Audios.Any())
+        {
+            <section class="media-panel">
+                <span class="eyebrow">音频</span>
+                <h3>音频链接</h3>
+                <ul class="media-links">
+                    @foreach (var audio in Model.Audios)
+                    {
+                        <li><a href="@audio" target="_blank">@audio</a></li>
+                    }
+                </ul>
+            </section>
+        }
+
+        @if (Model.Location is not null)
+        {
+            <section class="location-panel">
+                <span class="eyebrow">地点</span>
+                <h3>位置补充</h3>
+                <p>@Model.Location.Latitude, @Model.Location.Longitude</p>
+                @if (!string.IsNullOrWhiteSpace(Model.Location.Address))
+                {
+                    <p class="muted">@Model.Location.Address</p>
+                }
+            </section>
+        }
+    </section>
+}
