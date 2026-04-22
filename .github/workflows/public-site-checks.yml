@@ -1,0 +1,63 @@
+name: Public Site Checks
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  public-site:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Build web project
+        run: dotnet build ./src/MinsuXize.Web/MinsuXize.Web.csproj --configuration Release
+
+      - name: Run static public checks
+        run: python scripts/check_public_site.py
+
+      - name: Start local preview
+        run: |
+          dotnet run \
+            --project ./src/MinsuXize.Web/MinsuXize.Web.csproj \
+            --configuration Release \
+            --launch-profile http \
+            > /tmp/minsuxize-preview.log 2>&1 &
+          echo $! > /tmp/minsuxize-preview.pid
+
+      - name: Wait for preview
+        run: |
+          for attempt in {1..30}; do
+            if curl --silent --fail http://localhost:5088/healthz > /dev/null; then
+              exit 0
+            fi
+            sleep 2
+          done
+          cat /tmp/minsuxize-preview.log
+          exit 1
+
+      - name: Run public route checks
+        run: python scripts/check_public_site.py --base-url http://localhost:5088
+
+      - name: Stop local preview
+        if: always()
+        run: |
+          if [ -f /tmp/minsuxize-preview.pid ]; then
+            kill "$(cat /tmp/minsuxize-preview.pid)" || true
+          fi

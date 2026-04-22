@@ -97,7 +97,7 @@ public static class DbSeeder
                 Type = "村",
                 ParentId = 5,
                 FullPath = "中国 / 山西省 / 长治市 / 上党区 / 苏店镇 / 秦村",
-                Summary = "原型示例村落，展示除夕祭祖与春节准备流程如何被结构化记录。",
+                Summary = "围绕除夕祭祖与春节准备流程整理的村落记录点，适合继续补充家户仪式和口述资料。",
                 CulturalFocus = "除夕祭祖、祭灶、家庭仪式。",
                 HighlightsJson = JsonListSerializer.Serialize("除夕祭祖", "祭灶流程", "家庭礼制")
             });
@@ -207,9 +207,9 @@ public static class DbSeeder
                 Status = "published",
                 Version = 1,
                 ChangeLog = "初始版本",
-                ImagesJson = JsonListSerializer.Serialize("images/秦村祭祖1.jpg", "images/秦村祭祖2.jpg"),
-                VideosJson = JsonListSerializer.Serialize("videos/秦村祭祖仪式.mp4"),
-                AudiosJson = JsonListSerializer.Serialize("audios/祭词录音.mp3"),
+                ImagesJson = JsonListSerializer.Serialize(),
+                VideosJson = JsonListSerializer.Serialize(),
+                AudiosJson = JsonListSerializer.Serialize(),
                 LocationJson = "{\"Latitude\": 36.1911, \"Longitude\": 113.1012, \"AddressDetail\": \"山西省长治市上党区苏店镇秦村\"}"
             });
 
@@ -243,7 +243,7 @@ public static class DbSeeder
                 Status = "published",
                 Version = 1,
                 ChangeLog = "初始版本",
-                ImagesJson = JsonListSerializer.Serialize("images/祭灶1.jpg"),
+                ImagesJson = JsonListSerializer.Serialize(),
                 VideosJson = JsonListSerializer.Serialize(),
                 AudiosJson = JsonListSerializer.Serialize(),
                 LocationJson = "{\"Latitude\": 36.1923, \"Longitude\": 113.1025, \"AddressDetail\": \"山西省长治市上党区苏店镇秦村\"}"
@@ -279,9 +279,9 @@ public static class DbSeeder
                 Status = "published",
                 Version = 1,
                 ChangeLog = "初始版本",
-                ImagesJson = JsonListSerializer.Serialize("images/中元节1.jpg", "images/中元节2.jpg", "images/中元节3.jpg"),
-                VideosJson = JsonListSerializer.Serialize("videos/中元节表演.mp4"),
-                AudiosJson = JsonListSerializer.Serialize("audios/中元节祭词.mp3"),
+                ImagesJson = JsonListSerializer.Serialize(),
+                VideosJson = JsonListSerializer.Serialize(),
+                AudiosJson = JsonListSerializer.Serialize(),
                 LocationJson = "{\"Latitude\": 36.2056, \"Longitude\": 113.0879, \"AddressDetail\": \"山西省长治市上党区西火镇\"}"
             });
     }
@@ -297,8 +297,8 @@ public static class DbSeeder
                 Title = "秦村除夕祭祖口述记录",
                 Contributor = "村中年长主持者口述，站点筹备阶段整理",
                 RecordedAt = "2026-02-02",
-                Citation = "口述记录，待补录受访者授权信息与录音编号。",
-                Notes = "适合作为示例，后续应补充更完整的田野编号体系。"
+                Citation = "口述记录，来源信息仍在继续核对。",
+                Notes = "后续将补充更完整的田野编号和授权说明。"
             });
 
         UpsertSource(
@@ -308,7 +308,7 @@ public static class DbSeeder
                 Id = 2,
                 SourceType = "田野观察",
                 Title = "祭灶流程观察札记",
-                Contributor = "项目示例资料",
+                Contributor = "站点整理资料",
                 RecordedAt = "2026-01-31",
                 Citation = "祭灶时间、供品与祭词结构化观察记录。",
                 Notes = "展示结构化字段如何支撑后续检索和比对。"
@@ -321,7 +321,7 @@ public static class DbSeeder
                 Id = 3,
                 SourceType = "专题整理",
                 Title = "西火镇中元表演性民俗整理",
-                Contributor = "项目示例资料",
+                Contributor = "站点整理资料",
                 RecordedAt = "2025-08-20",
                 Citation = "按节日节点、参与角色、表演内容拆分字段。",
                 Notes = "适合后续扩展到图片、视频和来源链接。"
@@ -342,7 +342,7 @@ public static class DbSeeder
             new SubmissionRecordEntity
             {
                 Id = 1,
-                ContributorName = "示例投稿人",
+                ContributorName = "读者补充",
                 RegionId = 6,
                 FestivalId = 1,
                 Title = "补充秦村年夜饭供品细节",
@@ -358,7 +358,7 @@ public static class DbSeeder
             new SubmissionRecordEntity
             {
                 Id = 2,
-                ContributorName = "示例审核流程",
+                ContributorName = "读者补充",
                 RegionId = 7,
                 FestivalId = 3,
                 Title = "补充西火镇中元节观看秩序",

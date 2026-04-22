@@ -43,6 +43,13 @@
 - 文档侧：已完成知识结构、模板、样板、产品映射和协作规则
 - 代码侧：已存在一个可运行方向明确的原型，但尚未看出已完全落地“5 个核心实体完整 CMS”的全量后台
 - 协同侧：目前最需要的是把“文档计划”和“真实代码进展”对齐，否则后续 Agent 很容易误判阶段
+- 公开站点侧：2026-04-22 已完成一轮 P0 热修，重点清理公开页面英文残留、开发阶段文案和缺失媒体路径，`dotnet build .\src\MinsuXize.Web\MinsuXize.Web.csproj` 已通过
+- 公开站点检查：2026-04-22 已新增 `scripts/check_public_site.py`，可扫描公开文案残留、种子媒体坏路径，并可通过 `--base-url` 检查关键页面 HTTP 状态
+- 媒体资产规范：2026-04-22 已新增 `docs/public_media_assets.md`，公开条目媒体约定放在 `src/MinsuXize.Web/wwwroot/media/entries/{entryId}/...`
+- CI 检查：2026-04-22 已新增 `.github/workflows/public-site-checks.yml`，在 push / PR / 手动触发时执行 Release 构建、公开静态检查、启动本地预览并检查关键公开 URL
+- 首页视觉：2026-04-22 已将首页首屏升级为使用本地 bitmap 主视觉的全宽 hero，H1 收回为品牌名“中国民俗细则”
+- 阿里云部署：2026-04-22 已新增 systemd 自动部署方案，适配当前服务器无 Docker、已有 `minsuxize.service` 和 `nginx` 的状态；已确认 `minsuzhi.cn` 的 Nginx `proxy_pass` 为 `http://localhost:5000`，另一个站点 `xrcraft.cn` 在独立 Nginx server block 中
+- 阿里云部署安全边界：自动部署脚本默认只操作 `/var/www/minsuxize`、`minsuxize.service` 和 `http://127.0.0.1:5000/healthz`，不会重启 Nginx 或修改 `/etc/nginx/conf.d/*`
 
 ### TODO / 待确认
 
@@ -50,6 +57,9 @@
 - TODO：确认根仓库主分支到底应为 `main` 还是 `master`，并统一到远端分支策略
 - TODO：确认 `minsuxize/` 当前是否已上线到真实 Render 环境，现阶段只能确认有部署配置，不能确认线上状态
 - TODO：确认根目录大量已修改文档是否已经过人工审核，避免后续 Agent 误覆盖
+- TODO：为公开站点建立正式媒体资产目录和发布前静态资源检查，当前 P0 只隐藏缺失媒体，未补齐真实图片/音视频
+- TODO：继续补真实图片/音视频资产和媒体授权信息；当前检查脚本只负责防止坏链进入公开站，不替代内容治理
+- TODO：自动部署启用前，需要先按 `docs/aliyun_systemd_deploy.md` 的 One-Time Bootstrap 在服务器生成 `/var/www/minsuxize/publish` 首次发布产物，再把 `minsuxize.service` 从当前 `/var/www/minsuxize/MinsuXize.Web.dll` 调整为推荐的 `/var/www/minsuxize/publish/MinsuXize.Web.dll`；部署脚本已加入路径安全检查，未调整前会拒绝发布
 
 ## 项目结构速览
 
@@ -229,16 +239,43 @@ dotnet run --project .\src\MinsuXize.Web\MinsuXize.Web.csproj --launch-profile h
 
 ## 最近一次更新
 
-- 更新日期：`2026-04-12`
+- 更新日期：`2026-04-22`
 - 更新人：`Codex`
 - 本次动作：
-  - 新建并更新根目录统一交接文件 `AGENT_CONTEXT.md`
-  - 将原 `minsuxize` 远端仓库内容并入当前根仓库
-  - 把当前主线代码口径统一为根目录 `src/MinsuXize.Web/`
-  - 明确记录“文档状态与代码状态未完全同步”这一关键事实
-  - 明确要求后续 Agent 开工前读本文件、收工前回写本文件
+  - 执行公开站点 P0 热修：处理空白/坏图/文案不合适问题中的首批高影响项
+  - 将地区、节日公开页面的英文 eyebrow 改为中文表达
+  - 将关于页中“当前阶段暂不提供”“复杂地图”“大型内容管理后台”等开发阶段语言改为面向公众的后续能力说明
+  - 调整条目详情页空来源状态文案，避免显示成未完成占位
+  - 条目详情页新增媒体可渲染检查：本地媒体文件不存在时不再输出坏链接，远程 `http/https` 链接仍可展示
+  - 清理 `DbSeeder` 中不存在的图片/视频/音频种子路径，避免新部署继续写入坏媒体路径
+  - 清理公开种子内容里的“原型示例村落”“项目示例资料”“待补录”等不适合上线的措辞
+  - 使用 Playwright CLI 对首页、条目列表、条目详情、地区目录、地区详情、节日目录、节日详情、提交页、关于页做本地浏览器检查
+  - 新增 `scripts/check_public_site.py`，将公开词残留、种子媒体坏路径、关键 URL 状态检查固化为发布前脚本
+  - 更新 `.gitignore`，忽略 Playwright CLI 临时快照和本地截图产物
+  - 新增公开媒体资产规范文档 `docs/public_media_assets.md`
+  - 新建公开媒体目录占位 `src/MinsuXize.Web/wwwroot/media/entries/.gitkeep`
+  - 升级条目详情页媒体区：图片以后以缩略图展示，音视频以资料项展示；无有效媒体时不渲染空面板
+  - 发布前检查脚本新增本地媒体目录规范检查，本地媒体必须位于 `media/entries/`
+  - 新增 GitHub Actions 工作流 `.github/workflows/public-site-checks.yml`，将公开站点检查接入 CI
+  - 生成本地首页主视觉 `src/MinsuXize.Web/wwwroot/media/site/home-archive-hero.png`
+  - 调整首页 H1 和首屏文案，让品牌名成为第一视觉信号
+  - 更新首页首屏 CSS：全宽背景图、左侧文本区、浅色次按钮、移动端 hero 高度收敛并露出下一段内容
+  - 新增阿里云 systemd 部署脚本 `scripts/deploy_aliyun_systemd.sh`
+  - 新增 GitHub Actions 自动部署工作流 `.github/workflows/deploy-aliyun-systemd.yml`
+  - 新增阿里云部署说明 `docs/aliyun_systemd_deploy.md`
+  - 部署方案采用 `/var/www/minsuxize/repo` 拉源码、`/var/www/minsuxize/publish` 放发布产物、`/var/www/minsuxize/App_Data` 持久化 SQLite 数据
 - 本轮核验结果：
-  - 已确认根目录不存在旧版 `AGENT_CONTEXT.md`
-  - 已确认 `src/MinsuXize.Web` 可 `dotnet build`
-  - 已确认当前环境 `.NET SDK` 为 `10.0.201`
-  - 未在本轮完成线上部署状态验证
+  - 已执行 `dotnet build .\src\MinsuXize.Web\MinsuXize.Web.csproj`
+  - 构建通过：`0` 个警告，`0` 个错误
+  - 已执行 `dotnet build .\src\MinsuXize.Web\MinsuXize.Web.csproj --configuration Release`
+  - Release 构建通过：`0` 个警告，`0` 个错误
+  - 已执行 `python scripts/check_public_site.py --base-url http://localhost:5088`，检查通过
+  - 已执行 `python scripts/check_public_site.py`，检查通过
+  - 浏览器检查的关键公开页面均返回 `200`，未发现坏图、横向溢出或已列出的开发词残留
+  - 本地 PowerShell 对一条长形式 Release 预览模拟命令做了策略拦截；CI 文件本身使用 Linux shell，已通过本地 Release 构建和检查脚本验证核心步骤
+  - 已用 Playwright CLI 检查首页桌面和移动端首屏，移动端不横向溢出，并可露出下一段内容
+  - 已根据用户提供的服务器信息确认：Alibaba Cloud Linux 3，有 `nginx`、`git`、`dotnet`，无 Docker，`minsuxize.service` active running
+  - 已本地验证新增部署相关文件后 Release 构建和 `python scripts/check_public_site.py` 仍通过
+  - 部署自动化还未真正连到阿里云执行；启用前需要确认 `systemctl cat minsuxize.service`，确保 service 的 `WorkingDirectory` / `ExecStart` 指向 `/var/www/minsuxize/publish`
+  - 已创建本地 Git 提交，提交内容为本轮公开站点修复、检查脚本、首页视觉资产和阿里云 systemd 部署方案
+  - 本机尝试 `git fetch origin main` 和 `git push origin main` 均失败，错误为无法连接 `github.com:443`；因此当前提交尚未推送到 GitHub，服务器直接拉取远端前需要先完成推送

@@ -14,7 +14,7 @@
 </section>
 
 <section class="content-section section-panel">
-    <span class="eyebrow">Topics</span>
+    <span class="eyebrow">节令主题</span>
     <h2>这个节日通常围绕什么内容展开</h2>
     <div class="pill-grid">
         @foreach (var topic in Model.Festival.CoreTopics)
@@ -26,7 +26,7 @@
 
 <section class="content-section">
     <div class="section-heading">
-        <span class="eyebrow">Entries</span>
+        <span class="eyebrow">关联条目</span>
         <h2>关联条目</h2>
         <p>这里聚合同一节日在不同地区的记录，便于比较流程、参与者、供品与地方差异。</p>
     </div>
@@ -35,7 +35,7 @@
     {
         <div class="empty-state">
             <h3>这个节日还没有关联条目</h3>
-            <p>如果你掌握相关地方做法，可以补充一条线索进入审核流程。</p>
+            <p>如果你掌握相关地方做法，可以提交一条线索，帮助补齐这个节令的地方记录。</p>
             <a class="button-primary" asp-controller="Submit" asp-action="Create">补充节日线索</a>
         </div>
     }

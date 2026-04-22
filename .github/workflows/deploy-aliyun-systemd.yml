@@ -1,0 +1,57 @@
+name: Deploy To Aliyun Systemd
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Build web project
+        run: dotnet build ./src/MinsuXize.Web/MinsuXize.Web.csproj --configuration Release
+
+      - name: Run public site checks
+        run: python scripts/check_public_site.py
+
+      - name: Deploy over SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.ALIYUN_HOST }}
+          username: ${{ secrets.ALIYUN_USER }}
+          key: ${{ secrets.ALIYUN_SSH_KEY }}
+          port: ${{ secrets.ALIYUN_SSH_PORT || '22' }}
+          script: |
+            set -euo pipefail
+            export APP_ROOT="${{ secrets.ALIYUN_APP_ROOT || secrets.ALIYUN_APP_DIR || '/var/www/minsuxize' }}"
+            export REPO_DIR="${{ secrets.ALIYUN_REPO_DIR || '' }}"
+            export BRANCH="${{ github.ref_name }}"
+            export SERVICE_NAME="${{ secrets.ALIYUN_SERVICE_NAME || 'minsuxize.service' }}"
+            export HEALTH_URL="${{ secrets.ALIYUN_HEALTH_URL || 'http://127.0.0.1:5000/healthz' }}"
+            if [ -z "$REPO_DIR" ]; then
+              export REPO_DIR="$APP_ROOT/repo"
+            fi
+            if [ ! -d "$REPO_DIR/.git" ]; then
+              mkdir -p "$(dirname "$REPO_DIR")"
+              git clone --branch "$BRANCH" https://github.com/TrisomyManager/minsuxize.git "$REPO_DIR"
+            fi
+            cd "$REPO_DIR"
+            git fetch origin "$BRANCH"
+            git reset --hard "origin/$BRANCH"
+            bash scripts/deploy_aliyun_systemd.sh

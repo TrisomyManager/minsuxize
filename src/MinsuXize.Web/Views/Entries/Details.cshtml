@@ -1,7 +1,54 @@
 @model MinsuXize.Web.ViewModels.EntryDetailsViewModel
+@inject IWebHostEnvironment WebHostEnvironment
 @{
     ViewData["Title"] = Model.Entry.Title;
     var statusLabel = string.IsNullOrWhiteSpace(Model.Entry.Status) ? "待整理" : Model.Entry.Status;
+    var visibleImages = Model.Entry.Images.Where(IsRenderableMedia).ToList();
+    var visibleVideos = Model.Entry.Videos.Where(IsRenderableMedia).ToList();
+    var visibleAudios = Model.Entry.Audios.Where(IsRenderableMedia).ToList();
+}
+
+@functions {
+    private bool IsRenderableMedia(string? value)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            return false;
+        }
+
+        if (Uri.TryCreate(value, UriKind.Absolute, out var uri))
+        {
+            return uri.Scheme is "http" or "https";
+        }
+
+        var relativePath = value
+            .Trim()
+            .TrimStart('~', '/', '\\')
+            .Replace('/', System.IO.Path.DirectorySeparatorChar)
+            .Replace('\\', System.IO.Path.DirectorySeparatorChar);
+
+        return System.IO.File.Exists(System.IO.Path.Combine(WebHostEnvironment.WebRootPath, relativePath));
+    }
+
+    private string MediaUrl(string value)
+    {
+        if (Uri.TryCreate(value, UriKind.Absolute, out var uri) && uri.Scheme is "http" or "https")
+        {
+            return value;
+        }
+
+        return Url.Content($"~/{value.Trim().TrimStart('~', '/', '\\')}");
+    }
+
+    private static string MediaFileName(string value)
+    {
+        if (Uri.TryCreate(value, UriKind.Absolute, out var uri))
+        {
+            return System.IO.Path.GetFileName(uri.LocalPath);
+        }
+
+        return System.IO.Path.GetFileName(value.Replace('\\', '/'));
+    }
 }
 
 <section class="page-header">
@@ -21,7 +68,7 @@
         <section class="content-section split-layout">
             <section class="section-panel">
                 <span class="eyebrow">已知信息</span>
-                <h3>这里展示的是已经整理出的内容</h3>
+                <h3>已整理出的核心资料</h3>
                 <p>包括目前已知的地点、流程、讲究、口述材料和来源说明，便于你快速了解这条记录的基本情况。</p>
             </section>
             <section class="section-panel">
@@ -114,7 +161,7 @@
             @if (Model.Sources.Count == 0)
             {
                 <div class="empty-state">
-                    <p>当前还没有补充来源说明。</p>
+                    <p>这条记录的来源说明仍在补充中，后续会随资料核对继续完善。</p>
                 </div>
             }
             else
@@ -169,25 +216,45 @@
             </section>
         }
 
-        @if (Model.Entry.Images.Any() || Model.Entry.Videos.Any() || Model.Entry.Audios.Any())
+        @if (visibleImages.Any() || visibleVideos.Any() || visibleAudios.Any())
         {
             <section class="media-panel">
-                <span class="eyebrow">附加资料</span>
-                <h3>相关链接</h3>
-                <ul class="media-links">
-                    @foreach (var image in Model.Entry.Images)
-                    {
-                        <li><a href="@image" target="_blank">图片资料</a></li>
-                    }
-                    @foreach (var video in Model.Entry.Videos)
-                    {
-                        <li><a href="@video" target="_blank">视频资料</a></li>
-                    }
-                    @foreach (var audio in Model.Entry.Audios)
-                    {
-                        <li><a href="@audio" target="_blank">音频资料</a></li>
-                    }
-                </ul>
+                <span class="eyebrow">媒体资料</span>
+                <h3>可公开查看的附加资料</h3>
+                @if (visibleImages.Any())
+                {
+                    <div class="media-gallery" aria-label="图片资料">
+                        @foreach (var image in visibleImages)
+                        {
+                            <a class="media-thumb" href="@MediaUrl(image)" target="_blank" rel="noopener">
+                                <img src="@MediaUrl(image)" alt="@($"{Model.Entry.Title}图片资料")" loading="lazy" />
+                            </a>
+                        }
+                    </div>
+                }
+                @if (visibleVideos.Any() || visibleAudios.Any())
+                {
+                    <ul class="media-link-list">
+                        @foreach (var video in visibleVideos)
+                        {
+                            <li>
+                                <a class="media-link-card" href="@MediaUrl(video)" target="_blank" rel="noopener">
+                                    <span class="media-kind">视频</span>
+                                    <span>@(string.IsNullOrWhiteSpace(MediaFileName(video)) ? "视频资料" : MediaFileName(video))</span>
+                                </a>
+                            </li>
+                        }
+                        @foreach (var audio in visibleAudios)
+                        {
+                            <li>
+                                <a class="media-link-card" href="@MediaUrl(audio)" target="_blank" rel="noopener">
+                                    <span class="media-kind">音频</span>
+                                    <span>@(string.IsNullOrWhiteSpace(MediaFileName(audio)) ? "音频资料" : MediaFileName(audio))</span>
+                                </a>
+                            </li>
+                        }
+                    </ul>
+                }
             </section>
         }
 

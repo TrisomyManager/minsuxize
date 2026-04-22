@@ -18,7 +18,7 @@
 
 <section class="content-section split-layout">
     <section class="section-panel">
-        <span class="eyebrow">Regional Focus</span>
+        <span class="eyebrow">地区重点</span>
         <h2>地区文化焦点</h2>
         <p>@Model.Region.CulturalFocus</p>
         <div class="pill-grid">
@@ -37,12 +37,12 @@
     </section>
 
     <section class="section-panel">
-        <span class="eyebrow">Subregions</span>
+        <span class="eyebrow">下级地区</span>
         <h2>下级地区</h2>
         @if (Model.ChildRegions.Count == 0)
         {
             <div class="empty-state">
-                <p>当前还没有继续向下扩展的地区数据。</p>
+                <p>这个地区暂未细分到更下一级地点，后续会随资料整理继续补充。</p>
             </div>
         }
         else
@@ -67,7 +67,7 @@
 
 <section class="content-section">
     <div class="section-heading">
-        <span class="eyebrow">Entries In Region</span>
+        <span class="eyebrow">关联条目</span>
         <h2>本地区及下级地区已收录条目</h2>
         <p>点击上级地区时，会一并聚合同一行政层级以下已经收录的民俗细则。</p>
     </div>
@@ -76,7 +76,7 @@
     {
         <div class="empty-state">
             <h3>这个地区还没有公开条目</h3>
-            <p>如果你熟悉本地做法，可以直接补充一条线索进入审核流程。</p>
+            <p>如果你熟悉本地做法，可以提交一条线索，帮助补齐这个地区的记录。</p>
             <a class="button-primary" asp-controller="Submit" asp-action="Create">提交本地民俗线索</a>
         </div>
     }
