@@ -2,8 +2,6 @@ name: Deploy To Aliyun Systemd
 
 on:
   workflow_dispatch:
-  push:
-    branches: [main]
 
 jobs:
   deploy:
