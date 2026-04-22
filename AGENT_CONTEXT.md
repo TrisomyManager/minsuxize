@@ -279,6 +279,8 @@ dotnet run --project .\src\MinsuXize.Web\MinsuXize.Web.csproj --launch-profile h
   - 部署自动化还未真正连到阿里云执行；启用前需要确认 `systemctl cat minsuxize.service`，确保 service 的 `WorkingDirectory` / `ExecStart` 指向 `/var/www/minsuxize/publish`
   - 已创建本地 Git 提交，提交内容为本轮公开站点修复、检查脚本、首页视觉资产和阿里云 systemd 部署方案
   - 本机尝试 `git fetch origin main` 和 `git push origin main` 均失败，错误为无法连接 `github.com:443`；因此当前提交尚未推送到 GitHub，服务器直接拉取远端前需要先完成推送
-  - 已通过 GitHub API 将本轮修改写入远端 `main`，远端提交为 `942763d9273977ed7dd4e00031d61e0be8874be1`
+  - 已通过 GitHub API 将本轮修改写入远端 `main`；第一笔远端提交为 `942763d9273977ed7dd4e00031d61e0be8874be1`
   - 因为服务器 Secrets 尚未配置、服务器也尚未完成 `/var/www/minsuxize/publish` 一次性切换，已将 `.github/workflows/deploy-aliyun-systemd.yml` 改为仅 `workflow_dispatch` 手动触发
   - 旧的 `.github/workflows/seed-data.yml` 会在每次 push 后尝试提交并 push `data/`，但 GitHub Actions 默认无写权限导致失败；已改为仅 `workflow_dispatch` 手动触发，避免每次推送红灯
+  - 工作流触发方式修正后已再次通过 GitHub API 写入远端 `main`，当前远端最新提交为 `85d5d45c4648457fa5b95ec70313c8de05aa7e0d`
+  - 最新一次 GitHub Actions `Public Site Checks` 已通过；阿里云部署不会再因 push 自动触发，需手动运行 workflow 或在服务器执行部署命令
