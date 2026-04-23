@@ -1,7 +1,7 @@
 @{
     var siteName = "中国民俗细则后台";
     var pageTitle = ViewData["Title"]?.ToString();
-    var metaDescription = ViewData["MetaDescription"]?.ToString() ?? "中国民俗细则的反馈整理后台。";
+    var metaDescription = ViewData["MetaDescription"]?.ToString() ?? "中国民俗细则的内容整理后台。";
     var fullTitle = string.IsNullOrWhiteSpace(pageTitle) ? siteName : $"{pageTitle} | {siteName}";
     var adminUsername = ViewData["AdminUsername"]?.ToString();
 }
@@ -20,29 +20,19 @@
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
 </head>
 <body class="admin-mode admin-standalone">
-    <div class="site-backdrop"></div>
     <div class="site-shell">
         <header class="admin-topbar">
             <div class="shell-inner admin-topbar-inner">
-                @if (!string.IsNullOrWhiteSpace(adminUsername))
-                {
-                    <a class="brand-mark" asp-controller="Admin" asp-action="Index" aria-label="返回后台首页">
-                        <span class="brand-kicker">反馈整理后台</span>
-                        <strong>中国民俗细则后台</strong>
-                        <span class="brand-note">查看反馈、记录备注、调整状态</span>
-                    </a>
-                }
-                else
-                {
-                    <a class="brand-mark" asp-controller="Manage" asp-action="Login" aria-label="返回后台登录页">
-                        <span class="brand-kicker">反馈整理后台</span>
-                        <strong>中国民俗细则后台</strong>
-                        <span class="brand-note">查看反馈、记录备注、调整状态</span>
-                    </a>
-                }
+                <a class="brand-mark" asp-controller="Admin" asp-action="Index" aria-label="返回后台首页">
+                    <span class="brand-kicker">内容整理后台</span>
+                    <strong>中国民俗细则后台</strong>
+                    <span class="brand-note">审核投稿、维护词条、管理结构化字段</span>
+                </a>
 
                 <div class="admin-topbar-actions">
-                    <a class="header-link" asp-controller="Home" asp-action="Index">查看公众页面</a>
+                    <a class="header-link" asp-controller="Admin" asp-action="Index">投稿审核</a>
+                    <a class="header-link" asp-controller="Admin" asp-action="Entries">词条维护</a>
+                    <a class="header-link" asp-controller="Home" asp-action="Index">公开页面</a>
                     @if (!string.IsNullOrWhiteSpace(adminUsername))
                     {
                         <span class="admin-user">@adminUsername</span>

@@ -1,161 +1,117 @@
 @model MinsuXize.Web.ViewModels.SubmitEntryViewModel
 
 <section class="page-header">
-    <span class="eyebrow">提交补充</span>
-    <h1>提交补充、纠错或新的地方习俗线索</h1>
-    <p>
-        不需要一次写成完整条目。只要能说清地点、节令、做法摘要和来源说明，
-        就已经是一条有价值的补充。
-    </p>
+    <nav class="breadcrumb-line" aria-label="面包屑">
+        <a asp-controller="Home" asp-action="Index">首页</a>
+        <span>/</span>
+        <span>投稿</span>
+    </nav>
+    <span class="eyebrow">Submit</span>
+    <h1>投稿与纠错</h1>
+    <p>可提交新词条、补充流程、地区差异、禁忌、来源线索，或指出现有词条中的错误。提交后会进入待核实状态。</p>
+    @if (!string.IsNullOrWhiteSpace(Model.RelatedEntryTitle))
+    {
+        <div class="meta-list">
+            <span>关联词条：@Model.RelatedEntryTitle</span>
+        </div>
+    }
 </section>
 
-<section class="content-section split-layout">
-    <section class="form-shell">
-        <form asp-action="Create" method="post" class="entry-form">
-            <input asp-for="RelatedEntryId" type="hidden" />
-            <input asp-for="RelatedEntryTitle" type="hidden" />
-            <div asp-validation-summary="ModelOnly" class="validation-summary"></div>
+<section class="content-section form-shell">
+    <form asp-action="Create" method="post" class="entry-form">
+        @Html.AntiForgeryToken()
+        <input asp-for="RelatedEntryId" type="hidden" />
+        <input asp-for="RelatedEntryTitle" type="hidden" />
 
-            @if (Model.RelatedEntryId.HasValue && !string.IsNullOrWhiteSpace(Model.RelatedEntryTitle))
-            {
-                <section class="section-panel">
-                    <span class="eyebrow">关联条目</span>
-                    <h3>@Model.RelatedEntryTitle</h3>
-                    <p>这次提交会作为这条公开记录的补充或纠错说明，方便后续整理时对照查看。</p>
-                </section>
-            }
+        <div asp-validation-summary="ModelOnly" class="validation-summary"></div>
 
-            <div class="form-grid">
-                <div class="field-group">
-                    <label asp-for="ContributorName"></label>
-                    <input asp-for="ContributorName" class="field-input" placeholder="填写你的称呼或记录者姓名" />
-                    <span asp-validation-for="ContributorName" class="field-error"></span>
-                </div>
-
-                <div class="field-group">
-                    <label asp-for="Contact"></label>
-                    <input asp-for="Contact" class="field-input" placeholder="邮箱、微信或其他可联系的方式" />
-                    <span asp-validation-for="Contact" class="field-error"></span>
-                </div>
+        <div class="form-grid">
+            <div class="field-group">
+                <label asp-for="ContributorName"></label>
+                <input asp-for="ContributorName" class="field-input" />
+                <span asp-validation-for="ContributorName" class="field-error"></span>
             </div>
-
-            <div class="form-grid">
-                <div class="field-group">
-                    <label asp-for="RegionId"></label>
-                    <select asp-for="RegionId" asp-items="Model.Regions" class="field-input">
-                        <option value="">请选择地区</option>
-                    </select>
-                    <span asp-validation-for="RegionId" class="field-error"></span>
-                </div>
-
-                <div class="field-group">
-                    <label asp-for="FestivalId"></label>
-                    <select asp-for="FestivalId" asp-items="Model.Festivals" class="field-input">
-                        <option value="">请选择节日或时间节点</option>
-                    </select>
-                    <span asp-validation-for="FestivalId" class="field-error"></span>
-                </div>
+            <div class="field-group">
+                <label asp-for="Contact"></label>
+                <input asp-for="Contact" class="field-input" placeholder="邮箱、微信或其他联系方式，可选" />
+                <span asp-validation-for="Contact" class="field-error"></span>
             </div>
-
+            <div class="field-group">
+                <label asp-for="ContentType"></label>
+                <select asp-for="ContentType" asp-items="Model.ContentTypes" class="field-input"></select>
+            </div>
+            <div class="field-group">
+                <label asp-for="RegionId"></label>
+                <select asp-for="RegionId" asp-items="Model.Regions" class="field-input">
+                    <option value="">请选择地区</option>
+                </select>
+                <span asp-validation-for="RegionId" class="field-error"></span>
+            </div>
+            <div class="field-group">
+                <label asp-for="FestivalId"></label>
+                <select asp-for="FestivalId" asp-items="Model.Festivals" class="field-input">
+                    <option value="">请选择节日或时间节点</option>
+                </select>
+                <span asp-validation-for="FestivalId" class="field-error"></span>
+            </div>
             <div class="field-group">
                 <label asp-for="Title"></label>
-                <input asp-for="Title" class="field-input" placeholder="例如：某村除夕祭祖、补充某地祭灯供品顺序" />
+                <input asp-for="Title" class="field-input" />
                 <span asp-validation-for="Title" class="field-error"></span>
             </div>
+        </div>
 
-            <div class="field-group">
-                <label asp-for="Summary"></label>
-                <textarea asp-for="Summary" rows="7" class="field-input" placeholder="请概述具体做法、顺序、参与者，以及你认为最重要的差异点。"></textarea>
-                <span asp-validation-for="Summary" class="field-error"></span>
-            </div>
+        <div class="field-group">
+            <label asp-for="Summary"></label>
+            <textarea asp-for="Summary" class="field-input" placeholder="请尽量说明地点、时间、参与者、流程、材料、禁忌或差异。"></textarea>
+            <span asp-validation-for="Summary" class="field-error"></span>
+        </div>
 
-            <div class="field-group">
-                <label asp-for="SourceSummary"></label>
-                <textarea asp-for="SourceSummary" rows="6" class="field-input" placeholder="请说明信息来自谁、何时记录，是否来自口述、文献、照片、视频或实地观察。"></textarea>
-                <span asp-validation-for="SourceSummary" class="field-error"></span>
-            </div>
+        <div class="field-group">
+            <label asp-for="SourceSummary"></label>
+            <textarea asp-for="SourceSummary" class="field-input" placeholder="例如：本人亲历、长辈口述、田野笔记、地方志、公开网页、照片/视频等。"></textarea>
+            <span asp-validation-for="SourceSummary" class="field-error"></span>
+        </div>
 
-            <div class="form-section">
-                <h3>附加资料</h3>
-                <p class="helper-copy">当前先接受链接形式的补充，不要求正式上传附件。</p>
-
-                <div class="form-grid">
-                    <div class="field-group">
-                        <label asp-for="ImagesInput"></label>
-                        <textarea asp-for="ImagesInput" rows="3" class="field-input" placeholder="多个图片链接请用英文逗号分隔"></textarea>
-                        <span asp-validation-for="ImagesInput" class="field-error"></span>
-                    </div>
-
-                    <div class="field-group">
-                        <label asp-for="VideosInput"></label>
-                        <textarea asp-for="VideosInput" rows="3" class="field-input" placeholder="多个视频链接请用英文逗号分隔"></textarea>
-                        <span asp-validation-for="VideosInput" class="field-error"></span>
-                    </div>
-                </div>
-
-                <div class="form-grid">
-                    <div class="field-group">
-                        <label asp-for="AudiosInput"></label>
-                        <textarea asp-for="AudiosInput" rows="3" class="field-input" placeholder="多个音频链接请用英文逗号分隔"></textarea>
-                        <span asp-validation-for="AudiosInput" class="field-error"></span>
-                    </div>
-
-                    <div class="field-group">
-                        <label asp-for="ChangeLog"></label>
-                        <textarea asp-for="ChangeLog" rows="3" class="field-input" placeholder="如果是补充或纠错，请说明这次新增或改正了什么。"></textarea>
-                        <span asp-validation-for="ChangeLog" class="field-error"></span>
-                    </div>
-                </div>
-            </div>
-
-            <div class="form-section">
-                <h3>地点补充</h3>
-                <p class="helper-copy">如果知道更具体的位置，也欢迎一并补充。</p>
-
-                <div class="form-grid">
-                    <div class="field-group">
-                        <label asp-for="Latitude"></label>
-                        <input asp-for="Latitude" class="field-input" type="number" step="0.000001" placeholder="例如：39.9042" />
-                        <span asp-validation-for="Latitude" class="field-error"></span>
-                    </div>
-
-                    <div class="field-group">
-                        <label asp-for="Longitude"></label>
-                        <input asp-for="Longitude" class="field-input" type="number" step="0.000001" placeholder="例如：116.4074" />
-                        <span asp-validation-for="Longitude" class="field-error"></span>
-                    </div>
-                </div>
-
+        <div class="form-section">
+            <h2>可选补充</h2>
+            <div class="form-grid">
                 <div class="field-group">
-                    <label asp-for="Address"></label>
-                    <input asp-for="Address" class="field-input" placeholder="例如：山西省长治市上党区苏店镇某村" />
-                    <span asp-validation-for="Address" class="field-error"></span>
+                    <label asp-for="ImagesInput"></label>
+                    <input asp-for="ImagesInput" class="field-input" placeholder="多个链接用英文逗号分隔" />
+                </div>
+                <div class="field-group">
+                    <label asp-for="VideosInput"></label>
+                    <input asp-for="VideosInput" class="field-input" placeholder="多个链接用英文逗号分隔" />
+                </div>
+                <div class="field-group">
+                    <label asp-for="AudiosInput"></label>
+                    <input asp-for="AudiosInput" class="field-input" placeholder="多个链接用英文逗号分隔" />
+                </div>
+                <div class="field-group">
+                    <label asp-for="ChangeLog"></label>
+                    <input asp-for="ChangeLog" class="field-input" placeholder="本次补充的重点" />
+                </div>
+                <div class="field-group">
+                    <label asp-for="Latitude"></label>
+                    <input asp-for="Latitude" class="field-input" />
+                </div>
+                <div class="field-group">
+                    <label asp-for="Longitude"></label>
+                    <input asp-for="Longitude" class="field-input" />
                 </div>
             </div>
-
-            <div class="form-actions">
-                <button type="submit" class="button-primary">提交补充</button>
-                <a class="button-secondary" asp-controller="Entries" asp-action="Index">先浏览现有内容</a>
+            <div class="field-group">
+                <label asp-for="Address"></label>
+                <input asp-for="Address" class="field-input" />
             </div>
-        </form>
-    </section>
+        </div>
 
-    <aside class="section-panel">
-        <span class="eyebrow">填写建议</span>
-        <h2>什么样的补充更容易采用</h2>
-        <ul class="compact-list">
-            <li>尽量写清具体地点，而不是只写“北方”“某地”</li>
-            <li>尽量写明动作顺序、参与者、供品、禁忌和时间节点</li>
-            <li>尽量说明信息从哪里来，便于后续核对</li>
-            <li>如果是纠错，最好直接指出原内容哪里不准确</li>
-            <li>如果有图片、音频、视频，请尽量提供稳定链接</li>
-        </ul>
-
-        <div class="utility-actions">
-            <a class="button-secondary" asp-controller="Home" asp-action="Index">返回首页</a>
+        <div class="form-actions">
+            <button type="submit" class="button-primary">提交</button>
             <a class="button-secondary" asp-controller="Home" asp-action="SubmissionGuidelines">查看提交说明</a>
         </div>
-    </aside>
+    </form>
 </section>
 
 @section Scripts {

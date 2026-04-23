@@ -1,42 +1,50 @@
 @model MinsuXize.Web.ViewModels.FestivalDetailsViewModel
-@{
-    ViewData["Title"] = Model.Festival.Name;
-}
 
 <section class="page-header">
+    <nav class="breadcrumb-line" aria-label="面包屑">
+        <a asp-controller="Home" asp-action="Index">首页</a>
+        <span>/</span>
+        <a asp-controller="Festivals" asp-action="Index">节日</a>
+        <span>/</span>
+        <span>@Model.Festival.Name</span>
+    </nav>
     <span class="eyebrow">@Model.Festival.Category</span>
     <h1>@Model.Festival.Name</h1>
     <p>@Model.Festival.Summary</p>
     <div class="meta-list">
         <span>@Model.Festival.LunarLabel</span>
-        <span>关联条目 @Model.Entries.Count 条</span>
+        <span>@Model.Entries.Count 条相关词条</span>
     </div>
 </section>
 
-<section class="content-section section-panel">
-    <span class="eyebrow">节令主题</span>
-    <h2>这个节日通常围绕什么内容展开</h2>
-    <div class="pill-grid">
-        @foreach (var topic in Model.Festival.CoreTopics)
-        {
-            <span class="pill">@topic</span>
-        }
-    </div>
+<section class="content-section split-layout">
+    <section class="section-panel">
+        <span class="eyebrow">核心主题</span>
+        <h2>可检索主题</h2>
+        <div class="chip-row">
+            @foreach (var topic in Model.Festival.CoreTopics)
+            {
+                <a class="pill" asp-controller="Entries" asp-action="Index" asp-route-keyword="@topic">@topic</a>
+            }
+        </div>
+    </section>
+    <section class="section-panel">
+        <span class="eyebrow">投稿</span>
+        <h2>补充节日差异</h2>
+        <p>如果你知道某地在这个节日中的具体做法、禁忌或来源线索，可以提交补充。</p>
+        <a class="button-primary" asp-controller="Submit" asp-action="Create">提交资料</a>
+    </section>
 </section>
 
 <section class="content-section">
     <div class="section-heading">
-        <span class="eyebrow">关联条目</span>
-        <h2>关联条目</h2>
-        <p>这里聚合同一节日在不同地区的记录，便于比较流程、参与者、供品与地方差异。</p>
+        <span class="eyebrow">相关词条</span>
+        <h2>@Model.Festival.Name 下的民俗记录</h2>
     </div>
-
     @if (Model.Entries.Count == 0)
     {
         <div class="empty-state">
-            <h3>这个节日还没有关联条目</h3>
-            <p>如果你掌握相关地方做法，可以提交一条线索，帮助补齐这个节令的地方记录。</p>
-            <a class="button-primary" asp-controller="Submit" asp-action="Create">补充节日线索</a>
+            <p>这个节日还没有公开词条。</p>
         </div>
     }
     else
@@ -44,15 +52,16 @@
         <div class="result-grid">
             @foreach (var entry in Model.Entries)
             {
+                var region = Model.RegionsById[entry.RegionId];
                 <article class="surface-card">
-                    <span class="footer-label">民俗细则</span>
+                    <span class="footer-label">@entry.ContentType</span>
                     <h3>@entry.Title</h3>
                     <p>@entry.Summary</p>
-                    <div class="chip-row">
-                        <span class="pill">@entry.InheritanceStatus</span>
-                        <span class="pill">v@(entry.Version)</span>
+                    <div class="meta-list">
+                        <span>@region.FullPath</span>
+                        <span>@entry.ReviewStatus</span>
                     </div>
-                    <a class="text-link" asp-controller="Entries" asp-action="Details" asp-route-id="@entry.Id">查看细则详情</a>
+                    <a class="text-link" asp-controller="Entries" asp-action="Details" asp-route-slug="@entry.Slug">查看词条</a>
                 </article>
             }
         </div>

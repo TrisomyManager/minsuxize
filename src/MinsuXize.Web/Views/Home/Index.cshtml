@@ -1,76 +1,80 @@
 @model MinsuXize.Web.ViewModels.HomePageViewModel
 
-<section class="launch-hero search-landing" aria-label="中国民俗细则首页">
-    <div class="hero-copy landing-copy">
-        <span class="eyebrow">地方习俗公开资料</span>
+<section class="knowledge-hero" aria-label="中国民俗细则知识入口">
+    <div class="section-heading">
+        <span class="eyebrow">AI 友好的民俗知识库</span>
         <h1>中国民俗细则</h1>
-        <p class="hero-lead">
-            按地点、节令和来源整理仍在流传的地方做法。你可以先浏览现有记录，
-            也可以提交补充线索，帮助把更多细节核对清楚。
+        <p>
+            按地区、节日、仪式和来源整理地方民俗资料。每个词条尽量保留摘要、步骤、禁忌、
+            地区差异、FAQ、来源等级和待核实状态，方便读者浏览，也方便后续由 AI 协作维护。
         </p>
+    </div>
 
-        <div class="hero-actions">
-            <a class="button-primary" asp-controller="Entries" asp-action="Index">进入习俗浏览</a>
-            <a class="button-secondary" asp-controller="Submit" asp-action="Create">提交补充或纠错</a>
+    <form asp-controller="Home" asp-action="Search" method="get" class="search-form landing-search-shell">
+        <div class="search-main-row">
+            <input class="search-keyword-input" type="search" name="query" placeholder="搜索地区、节日、仪式、供品、禁忌或来源关键词" />
+            <button type="submit" class="search-submit-button">搜索</button>
         </div>
+    </form>
 
-        <div class="hero-meta">
-            <span>@Model.EntryCount 条公开记录</span>
-            <span>@Model.LocationCount 个地区线索</span>
-            <span>@Model.FestivalCount 个节令锚点</span>
-            <span>@Model.FeedbackCount 条补充记录</span>
-        </div>
+    <div class="hero-meta">
+        <span>@Model.EntryCount 个词条</span>
+        <span>@Model.LocationCount 个地区</span>
+        <span>@Model.FestivalCount 个节日</span>
+        <span>@Model.RitualCount 个仪式</span>
+        <span>@Model.FeedbackCount 条投稿</span>
     </div>
 </section>
 
-<section class="content-section stats-grid">
-    <article class="surface-card">
-        <span class="footer-label">先看什么</span>
-        <h3>从公开记录开始</h3>
-        <p>首页优先展示已经整理好的条目，帮助你快速进入浏览，不需要先理解复杂分类。</p>
+<section class="content-section browse-grid" aria-label="知识库浏览入口">
+    <article class="section-panel">
+        <span class="footer-label">按地区</span>
+        <h2>从地方进入</h2>
+        <p>适合查某个省、市、乡镇或村落已收录的民俗资料。</p>
+        <a class="text-link" asp-controller="Places" asp-action="Index">浏览地区</a>
     </article>
-    <article class="surface-card">
-        <span class="footer-label">怎么找</span>
-        <h3>按关键词和地区查</h3>
-        <p>你可以通过做法、节令、供品、参与者或地区来查找，更快找到感兴趣的内容。</p>
+    <article class="section-panel">
+        <span class="footer-label">按节日</span>
+        <h2>从时间节点进入</h2>
+        <p>适合比较同一节日下不同地区的做法差异。</p>
+        <a class="text-link" asp-controller="Festivals" asp-action="Index">浏览节日</a>
     </article>
-    <article class="surface-card">
-        <span class="footer-label">怎么参与</span>
-        <h3>补充真实线索</h3>
-        <p>哪怕只知道一个地方、一个做法细节或一条来源说明，也可以成为有价值的补充。</p>
+    <article class="section-panel">
+        <span class="footer-label">按仪式</span>
+        <h2>从具体做法进入</h2>
+        <p>适合直接查看流程、材料、禁忌和常见问答。</p>
+        <a class="text-link" asp-controller="Rituals" asp-action="Index">浏览仪式</a>
     </article>
-</section>
-
-<section class="content-section page-header">
-    <span class="eyebrow">持续建设中</span>
-    <h2>目前展示的是第一批已整理内容</h2>
-    <p>页面和资料都还在陆续补充。你看到的内容不代表已经收齐，只是先把可以公开浏览的部分整理出来，方便更多人查看和补正。</p>
+    <article class="section-panel">
+        <span class="footer-label">投稿入口</span>
+        <h2>补充或纠错</h2>
+        <p>可以提交新线索、来源、地区差异，也可以纠正现有词条。</p>
+        <a class="text-link" asp-controller="Submit" asp-action="Create">提交资料</a>
+    </article>
 </section>
 
 <section class="content-section">
     <div class="section-heading">
-        <span class="eyebrow">精选内容</span>
-        <h2>可以先从这些条目开始浏览</h2>
-        <p>这些是目前已经整理出的代表性条目，适合先了解页面结构和资料呈现方式。</p>
+        <span class="eyebrow">最新收录</span>
+        <h2>最近更新的词条</h2>
     </div>
-
     <div class="result-grid">
-        @foreach (var entry in Model.FeaturedEntries)
+        @foreach (var entry in Model.LatestEntries)
         {
             <article class="surface-card">
                 <div class="surface-link-head">
                     <div>
-                        <span class="footer-label">公开条目</span>
+                        <span class="footer-label">@entry.ContentType</span>
                         <h3>@entry.Title</h3>
                     </div>
-                    <span class="pill">@entry.InheritanceStatus</span>
+                    <span class="pill">@entry.ReviewStatus</span>
                 </div>
                 <p>@entry.Summary</p>
                 <div class="meta-list">
-                    <span>整理版本 @entry.Version</span>
-                    <span>更新于 @entry.UpdatedAt.ToLocalTime().ToString("yyyy-MM-dd")</span>
+                    <span>更新 @entry.UpdatedAt.ToLocalTime().ToString("yyyy-MM-dd")</span>
+                    <span>置信度 @entry.ConfidenceLevel</span>
                 </div>
-                <a class="text-link" asp-controller="Entries" asp-action="Details" asp-route-id="@entry.Id">查看详情</a>
+                <a class="text-link" asp-controller="Entries" asp-action="Details" asp-route-slug="@entry.Slug">查看词条</a>
             </article>
         }
     </div>
@@ -79,54 +83,63 @@
 <section class="content-section split-layout">
     <section class="section-panel">
         <div class="section-heading">
-            <span class="eyebrow">按地区看</span>
-            <h2>从地方线索进入内容</h2>
-            <p>如果你更关心某个地方的风俗，可以先从地区入口查看，再进入具体条目。</p>
+            <span class="eyebrow">地区入口</span>
+            <h2>按地区浏览</h2>
         </div>
-
-        <div class="result-grid">
+        <ul class="compact-list link-list">
             @foreach (var region in Model.FeaturedLocations)
             {
-                <article class="surface-card">
-                    <span class="footer-label">地区线索</span>
-                    <h3>@region.Name</h3>
-                    <p>@region.Summary</p>
-                    <a class="text-link" asp-controller="Regions" asp-action="Details" asp-route-id="@region.Id">查看地区页</a>
-                </article>
+                <li>
+                    <a asp-controller="Places" asp-action="Details" asp-route-slug="@region.Slug">@region.FullPath</a>
+                </li>
             }
-        </div>
+        </ul>
     </section>
 
     <section class="section-panel">
         <div class="section-heading">
-            <span class="eyebrow">按节令看</span>
-            <h2>也可以从时间节点进入</h2>
-            <p>一些做法与春节、清明、秋收等节令密切相关，按时间节点浏览会更直观。</p>
+            <span class="eyebrow">节日入口</span>
+            <h2>按节日浏览</h2>
         </div>
-
-        <ul class="compact-list">
+        <ul class="compact-list link-list">
             @foreach (var festival in Model.FeaturedFestivals)
             {
                 <li>
-                    <strong>@festival.Name</strong>，@festival.LunarLabel
+                    <a asp-controller="Festivals" asp-action="Details" asp-route-slug="@festival.Slug">@festival.Name</a>
+                    <span class="muted">@festival.LunarLabel</span>
                 </li>
             }
         </ul>
-
-        <div class="utility-actions">
-            <a class="button-secondary" asp-controller="Festivals" asp-action="Index">查看节令目录</a>
-            <a class="button-primary" asp-controller="Submit" asp-action="Create">补充相关线索</a>
-        </div>
     </section>
 </section>
 
-<section class="content-section page-header">
-    <span class="eyebrow">参与补充</span>
-    <h2>如果你知道得更多，欢迎直接告诉我们</h2>
-    <div class="meta-list">
-        <span>可补充地区信息</span>
-        <span>可补充流程细节</span>
-        <span>可补充来源说明</span>
-        <span>可指出错误或遗漏</span>
-    </div>
+<section class="content-section split-layout">
+    <section class="section-panel">
+        <div class="section-heading">
+            <span class="eyebrow">热门词条</span>
+            <h2>可优先查看的代表记录</h2>
+        </div>
+        <ul class="compact-list link-list">
+            @foreach (var entry in Model.PopularEntries)
+            {
+                <li>
+                    <a asp-controller="Entries" asp-action="Details" asp-route-slug="@entry.Slug">@entry.Title</a>
+                    <span class="muted">@entry.Summary</span>
+                </li>
+            }
+        </ul>
+    </section>
+
+    <section class="section-panel">
+        <div class="section-heading">
+            <span class="eyebrow">热门标签</span>
+            <h2>常见检索词</h2>
+        </div>
+        <div class="chip-row">
+            @foreach (var term in Model.PopularTerms)
+            {
+                <a class="pill" asp-controller="Entries" asp-action="Index" asp-route-tag="@term">@term</a>
+            }
+        </div>
+    </section>
 </section>

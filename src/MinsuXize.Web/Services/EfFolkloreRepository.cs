@@ -30,6 +30,12 @@ public sealed class EfFolkloreRepository : IFolkloreRepository
         return entity is null ? null : MapRegion(entity);
     }
 
+    public Region? GetRegionBySlug(string slug)
+    {
+        var entity = _context.Regions.AsNoTracking().FirstOrDefault(item => item.Slug == slug);
+        return entity is null ? null : MapRegion(entity);
+    }
+
     public IReadOnlyList<Region> GetChildRegions(int parentId) =>
         _context.Regions
             .AsNoTracking()
@@ -56,10 +62,27 @@ public sealed class EfFolkloreRepository : IFolkloreRepository
         return entity is null ? null : MapFestival(entity);
     }
 
+    public Festival? GetFestivalBySlug(string slug)
+    {
+        var entity = _context.Festivals.AsNoTracking().FirstOrDefault(item => item.Slug == slug);
+        return entity is null ? null : MapFestival(entity);
+    }
+
     public IReadOnlyList<FolkloreEntry> GetEntries() =>
         _context.Entries
             .AsNoTracking()
-            .OrderBy(item => item.Id)
+            .OrderByDescending(item => item.UpdatedAt)
+            .ThenBy(item => item.Title)
+            .ToList()
+            .Select(MapEntry)
+            .ToList();
+
+    public IReadOnlyList<FolkloreEntry> GetEntriesByContentType(string contentType) =>
+        _context.Entries
+            .AsNoTracking()
+            .Where(item => item.ContentType == contentType)
+            .OrderByDescending(item => item.UpdatedAt)
+            .ThenBy(item => item.Title)
             .ToList()
             .Select(MapEntry)
             .ToList();
@@ -67,19 +90,13 @@ public sealed class EfFolkloreRepository : IFolkloreRepository
     public FolkloreEntry? GetEntryById(int id)
     {
         var entity = _context.Entries.AsNoTracking().FirstOrDefault(item => item.Id == id);
-        if (entity is null)
-        {
-            return null;
-        }
+        return entity is null ? null : MapEntry(entity);
+    }
 
-        var sourceIds = _context.EntrySources
-            .AsNoTracking()
-            .Where(item => item.EntryId == id)
-            .OrderBy(item => item.Id)
-            .Select(item => item.SourceId)
-            .ToList();
-
-        return MapEntry(entity, sourceIds);
+    public FolkloreEntry? GetEntryBySlug(string slug)
+    {
+        var entity = _context.Entries.AsNoTracking().FirstOrDefault(item => item.Slug == slug);
+        return entity is null ? null : MapEntry(entity);
     }
 
     public IReadOnlyList<FolkloreEntry> GetEntriesByRegion(int regionId)
@@ -89,7 +106,8 @@ public sealed class EfFolkloreRepository : IFolkloreRepository
         return _context.Entries
             .AsNoTracking()
             .Where(item => regionTreeIds.Contains(item.RegionId))
-            .OrderBy(item => item.Title)
+            .OrderByDescending(item => item.UpdatedAt)
+            .ThenBy(item => item.Title)
             .ToList()
             .Select(MapEntry)
             .ToList();
@@ -99,9 +117,66 @@ public sealed class EfFolkloreRepository : IFolkloreRepository
         _context.Entries
             .AsNoTracking()
             .Where(item => item.FestivalId == festivalId)
-            .OrderBy(item => item.Title)
+            .OrderByDescending(item => item.UpdatedAt)
+            .ThenBy(item => item.Title)
             .ToList()
             .Select(MapEntry)
+            .ToList();
+
+    public IReadOnlyList<FolkloreEntry> GetRelatedEntries(int entryId, int take = 4)
+    {
+        var entry = _context.Entries.AsNoTracking().FirstOrDefault(item => item.Id == entryId);
+        if (entry is null)
+        {
+            return [];
+        }
+
+        var relatedIds = _context.EntryRelations
+            .AsNoTracking()
+            .Where(item => item.EntryId == entryId)
+            .OrderBy(item => item.Id)
+            .Select(item => item.RelatedEntryId)
+            .ToList();
+
+        var explicitRelated = _context.Entries
+            .AsNoTracking()
+            .Where(item => relatedIds.Contains(item.Id))
+            .ToList()
+            .OrderBy(item => relatedIds.IndexOf(item.Id))
+            .Select(MapEntry)
+            .ToList();
+
+        if (explicitRelated.Count >= take)
+        {
+            return explicitRelated.Take(take).ToList();
+        }
+
+        var fallback = _context.Entries
+            .AsNoTracking()
+            .Where(item =>
+                item.Id != entryId &&
+                !relatedIds.Contains(item.Id) &&
+                (item.RegionId == entry.RegionId ||
+                 item.FestivalId == entry.FestivalId ||
+                 item.ContentType == entry.ContentType))
+            .OrderByDescending(item => item.FestivalId == entry.FestivalId)
+            .ThenByDescending(item => item.RegionId == entry.RegionId)
+            .ThenByDescending(item => item.UpdatedAt)
+            .Take(take - explicitRelated.Count)
+            .ToList()
+            .Select(MapEntry);
+
+        return explicitRelated.Concat(fallback).Take(take).ToList();
+    }
+
+    public IReadOnlyList<EntryFaq> GetFaqsForEntry(int entryId) =>
+        _context.EntryFaqs
+            .AsNoTracking()
+            .Where(item => item.EntryId == entryId)
+            .OrderBy(item => item.SortOrder)
+            .ThenBy(item => item.Id)
+            .ToList()
+            .Select(MapFaq)
             .ToList();
 
     public IReadOnlyList<SourceEvidence> GetSourcesForEntry(int entryId)
@@ -119,6 +194,43 @@ public sealed class EfFolkloreRepository : IFolkloreRepository
             .ToList()
             .Select(MapSource)
             .ToList();
+    }
+
+    public StructuredKnowledgeEntry? GetStructuredEntry(string slug)
+    {
+        var entry = GetEntryBySlug(slug);
+        if (entry is null)
+        {
+            return null;
+        }
+
+        var region = GetRegionById(entry.RegionId);
+        var festival = GetFestivalById(entry.FestivalId);
+        if (region is null || festival is null)
+        {
+            return null;
+        }
+
+        return new StructuredKnowledgeEntry
+        {
+            Title = entry.Title,
+            Slug = entry.Slug,
+            ContentType = entry.ContentType,
+            Summary = entry.Summary,
+            Region = region,
+            Festival = festival,
+            RegionFields = entry.RegionFields,
+            Materials = entry.ItemsUsed,
+            Preparations = entry.Preparations,
+            Steps = entry.RitualProcess,
+            Taboos = entry.Taboos,
+            RegionalDifferences = entry.RegionalDifferences,
+            FAQ = GetFaqsForEntry(entry.Id),
+            Sources = GetSourcesForEntry(entry.Id),
+            ReviewStatus = entry.ReviewStatus,
+            ConfidenceLevel = entry.ConfidenceLevel,
+            UpdatedAt = entry.UpdatedAt
+        };
     }
 
     public IReadOnlyList<SubmissionRecord> GetSubmissions() =>
@@ -142,6 +254,8 @@ public sealed class EfFolkloreRepository : IFolkloreRepository
     {
         var entity = new SubmissionRecordEntity
         {
+            RelatedEntryId = input.RelatedEntryId,
+            ContentType = input.ContentType,
             ContributorName = input.ContributorName,
             RegionId = input.RegionId,
             FestivalId = input.FestivalId,
@@ -159,7 +273,7 @@ public sealed class EfFolkloreRepository : IFolkloreRepository
             Images = input.Images,
             Videos = input.Videos,
             Audios = input.Audios,
-            Location = input.Location == null ? null : new Data.Entities.LocationInfoData
+            Location = input.Location == null ? null : new LocationInfoData
             {
                 Latitude = input.Location.Latitude,
                 Longitude = input.Location.Longitude,
@@ -188,9 +302,8 @@ public sealed class EfFolkloreRepository : IFolkloreRepository
         entity.Status = (int)status;
         entity.ReviewerNote = reviewerNote;
         entity.UpdatedAt = DateTime.UtcNow;
-        
-        // 记录审核历史
-        var history = new ReviewHistoryEntity
+
+        _context.ReviewHistories.Add(new ReviewHistoryEntity
         {
             SubmissionId = submissionId,
             OldStatus = (int)oldStatus,
@@ -198,16 +311,15 @@ public sealed class EfFolkloreRepository : IFolkloreRepository
             Reviewer = reviewerName,
             ReviewerNote = reviewerNote,
             ReviewedAt = DateTime.UtcNow,
-            ChangeSummary = $"状态从 {oldStatus} 更改为 {status}"
-        };
-        
-        _context.ReviewHistories.Add(history);
+            ChangeSummary = $"状态从 {oldStatus} 更新为 {status}"
+        });
+
         _context.SaveChanges();
     }
-    
-    public IReadOnlyList<ReviewHistory> GetReviewHistory(int submissionId)
-    {
-        return _context.ReviewHistories
+
+    public IReadOnlyList<ReviewHistory> GetReviewHistory(int submissionId) =>
+        _context.ReviewHistories
+            .AsNoTracking()
             .Where(h => h.SubmissionId == submissionId)
             .OrderByDescending(h => h.ReviewedAt)
             .Select(h => new ReviewHistory
@@ -222,11 +334,10 @@ public sealed class EfFolkloreRepository : IFolkloreRepository
                 ChangeSummary = h.ChangeSummary
             })
             .ToList();
-    }
-    
+
     public void AddReviewHistory(ReviewHistory history)
     {
-        var entity = new ReviewHistoryEntity
+        _context.ReviewHistories.Add(new ReviewHistoryEntity
         {
             SubmissionId = history.SubmissionId,
             OldStatus = (int)history.OldStatus,
@@ -236,27 +347,25 @@ public sealed class EfFolkloreRepository : IFolkloreRepository
             ReviewedAt = history.ReviewedAt,
             ChangeSummary = history.ChangeSummary,
             MetadataJson = history.MetadataJson
-        };
-        
-        _context.ReviewHistories.Add(entity);
+        });
+
         _context.SaveChanges();
     }
-    
+
     public void BulkUpdateSubmissionStatus(List<int> submissionIds, SubmissionStatus status, string? reviewerNote, string reviewerName)
     {
         var entities = _context.Submissions
             .Where(s => submissionIds.Contains(s.Id))
             .ToList();
-            
+
         foreach (var entity in entities)
         {
             var oldStatus = (SubmissionStatus)entity.Status;
             entity.Status = (int)status;
             entity.ReviewerNote = reviewerNote;
             entity.UpdatedAt = DateTime.UtcNow;
-            
-            // 记录审核历史
-            var history = new ReviewHistoryEntity
+
+            _context.ReviewHistories.Add(new ReviewHistoryEntity
             {
                 SubmissionId = entity.Id,
                 OldStatus = (int)oldStatus,
@@ -264,38 +373,12 @@ public sealed class EfFolkloreRepository : IFolkloreRepository
                 Reviewer = reviewerName,
                 ReviewerNote = reviewerNote,
                 ReviewedAt = DateTime.UtcNow,
-                ChangeSummary = $"批量操作：状态从 {oldStatus} 更改为 {status}"
-            };
-            
-            _context.ReviewHistories.Add(history);
+                ChangeSummary = $"批量操作：状态从 {oldStatus} 更新为 {status}"
+            });
         }
-        
+
         _context.SaveChanges();
     }
-
-    private static Region MapRegion(RegionEntity entity) =>
-        new()
-        {
-            Id = entity.Id,
-            Name = entity.Name,
-            Type = entity.Type,
-            ParentId = entity.ParentId,
-            FullPath = entity.FullPath,
-            Summary = entity.Summary,
-            CulturalFocus = entity.CulturalFocus,
-            Highlights = JsonListSerializer.Deserialize(entity.HighlightsJson)
-        };
-
-    private static Festival MapFestival(FestivalEntity entity) =>
-        new()
-        {
-            Id = entity.Id,
-            Name = entity.Name,
-            Category = entity.Category,
-            LunarLabel = entity.LunarLabel,
-            Summary = entity.Summary,
-            CoreTopics = JsonListSerializer.Deserialize(entity.CoreTopicsJson)
-        };
 
     private FolkloreEntry MapEntry(FolkloreEntryEntity entity)
     {
@@ -309,22 +392,50 @@ public sealed class EfFolkloreRepository : IFolkloreRepository
         return MapEntry(entity, sourceIds);
     }
 
+    private static Region MapRegion(RegionEntity entity) =>
+        new()
+        {
+            Id = entity.Id,
+            Slug = entity.Slug,
+            Name = entity.Name,
+            Type = entity.Type,
+            ParentId = entity.ParentId,
+            FullPath = entity.FullPath,
+            Summary = entity.Summary,
+            CulturalFocus = entity.CulturalFocus,
+            Highlights = JsonListSerializer.Deserialize(entity.HighlightsJson),
+            UpdatedAt = entity.UpdatedAt
+        };
+
+    private static Festival MapFestival(FestivalEntity entity) =>
+        new()
+        {
+            Id = entity.Id,
+            Slug = entity.Slug,
+            Name = entity.Name,
+            Category = entity.Category,
+            LunarLabel = entity.LunarLabel,
+            Summary = entity.Summary,
+            CoreTopics = JsonListSerializer.Deserialize(entity.CoreTopicsJson),
+            UpdatedAt = entity.UpdatedAt
+        };
+
     private static FolkloreEntry MapEntry(FolkloreEntryEntity entity, IReadOnlyList<int> sourceIds)
     {
         GeoLocation? location = null;
-        if (!string.IsNullOrEmpty(entity.LocationJson))
+        if (!string.IsNullOrWhiteSpace(entity.LocationJson))
         {
             try
             {
-                var locationData = System.Text.Json.JsonSerializer.Deserialize<GeoLocationData>(entity.LocationJson);
-                if (locationData != null)
+                var locationData = JsonSerializer.Deserialize<GeoLocationData>(entity.LocationJson);
+                if (locationData is not null)
                 {
                     location = new GeoLocation(locationData.Latitude, locationData.Longitude, locationData.AddressDetail);
                 }
             }
             catch
             {
-                // 如果反序列化失败，保持为 null
+                location = null;
             }
         }
 
@@ -332,24 +443,32 @@ public sealed class EfFolkloreRepository : IFolkloreRepository
         {
             Id = entity.Id,
             Title = entity.Title,
+            Slug = entity.Slug,
+            ContentType = entity.ContentType,
             RegionId = entity.RegionId,
             FestivalId = entity.FestivalId,
             Summary = entity.Summary,
+            RegionFields = DeserializeDictionary(entity.RegionFieldsJson),
             HistoricalOrigin = entity.HistoricalOrigin,
             SymbolicMeaning = entity.SymbolicMeaning,
             InheritanceStatus = entity.InheritanceStatus,
             ChangeNotes = entity.ChangeNotes,
             OralText = entity.OralText,
+            Preparations = JsonListSerializer.Deserialize(entity.PreparationsJson),
             RitualProcess = JsonListSerializer.Deserialize(entity.RitualProcessJson),
+            RegionalDifferences = JsonListSerializer.Deserialize(entity.RegionalDifferencesJson),
             ItemsUsed = JsonListSerializer.Deserialize(entity.ItemsUsedJson),
             Taboos = JsonListSerializer.Deserialize(entity.TaboosJson),
             Participants = JsonListSerializer.Deserialize(entity.ParticipantsJson),
+            Tags = JsonListSerializer.Deserialize(entity.TagsJson),
             SourceIds = sourceIds,
-            // 新增字段
             CreatedAt = entity.CreatedAt,
             UpdatedAt = entity.UpdatedAt,
             CreatedBy = entity.CreatedBy,
             Status = entity.Status,
+            ReviewStatus = entity.ReviewStatus,
+            ConfidenceLevel = entity.ConfidenceLevel,
+            SourceGrade = entity.SourceGrade,
             Version = entity.Version,
             ChangeLog = entity.ChangeLog,
             Images = JsonListSerializer.Deserialize(entity.ImagesJson),
@@ -359,18 +478,22 @@ public sealed class EfFolkloreRepository : IFolkloreRepository
         };
     }
 
-    private class GeoLocationData
-    {
-        public double Latitude { get; set; }
-        public double Longitude { get; set; }
-        public string? AddressDetail { get; set; }
-    }
+    private static EntryFaq MapFaq(EntryFaqEntity entity) =>
+        new()
+        {
+            Id = entity.Id,
+            EntryId = entity.EntryId,
+            Question = entity.Question,
+            Answer = entity.Answer,
+            SortOrder = entity.SortOrder
+        };
 
     private static SourceEvidence MapSource(SourceEvidenceEntity entity) =>
         new()
         {
             Id = entity.Id,
             SourceType = entity.SourceType,
+            SourceLevel = entity.SourceLevel,
             Title = entity.Title,
             Contributor = entity.Contributor,
             RecordedAt = entity.RecordedAt,
@@ -383,6 +506,8 @@ public sealed class EfFolkloreRepository : IFolkloreRepository
         new()
         {
             Id = entity.Id,
+            RelatedEntryId = entity.RelatedEntryId,
+            ContentType = entity.ContentType,
             ContributorName = entity.ContributorName,
             RegionId = entity.RegionId,
             FestivalId = entity.FestivalId,
@@ -414,4 +539,28 @@ public sealed class EfFolkloreRepository : IFolkloreRepository
                     Description = entity.Location.Description
                 }
         };
+
+    private static IReadOnlyDictionary<string, string> DeserializeDictionary(string? json)
+    {
+        if (string.IsNullOrWhiteSpace(json))
+        {
+            return new Dictionary<string, string>();
+        }
+
+        try
+        {
+            return JsonSerializer.Deserialize<Dictionary<string, string>>(json) ?? new Dictionary<string, string>();
+        }
+        catch
+        {
+            return new Dictionary<string, string>();
+        }
+    }
+
+    private sealed class GeoLocationData
+    {
+        public double Latitude { get; set; }
+        public double Longitude { get; set; }
+        public string? AddressDetail { get; set; }
+    }
 }

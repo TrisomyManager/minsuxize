@@ -5,6 +5,8 @@ namespace MinsuXize.Web.Data.Entities;
 public sealed class SubmissionRecordEntity
 {
     public int Id { get; set; }
+    public int? RelatedEntryId { get; set; }
+    public string ContentType { get; set; } = "ritual";
     public string ContributorName { get; set; } = string.Empty;
     public int RegionId { get; set; }
     public int FestivalId { get; set; }

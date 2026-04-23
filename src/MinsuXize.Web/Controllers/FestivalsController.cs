@@ -4,6 +4,7 @@ using MinsuXize.Web.ViewModels;
 
 namespace MinsuXize.Web.Controllers;
 
+[Route("festivals")]
 public sealed class FestivalsController : Controller
 {
     private readonly IFolkloreRepository _repository;
@@ -13,13 +14,16 @@ public sealed class FestivalsController : Controller
         _repository = repository;
     }
 
+    [HttpGet("")]
     public IActionResult Index()
     {
-        ViewData["MetaDescription"] = "按节日、节气和时间节点查看不同地区的民俗差异，横向比较相同节日下的具体做法。";
+        ViewData["Title"] = "节日";
+        ViewData["MetaDescription"] = "按节日、节气和时间节点查看不同地区的民俗差异。";
         return View(_repository.GetFestivals());
     }
 
-    public IActionResult Details(int id)
+    [HttpGet("{id:int}")]
+    public IActionResult LegacyDetails(int id)
     {
         var festival = _repository.GetFestivalById(id);
         if (festival is null)
@@ -27,14 +31,26 @@ public sealed class FestivalsController : Controller
             return NotFound();
         }
 
+        return RedirectToActionPermanent(nameof(Details), new { slug = festival.Slug });
+    }
+
+    [HttpGet("{slug}")]
+    public IActionResult Details(string slug)
+    {
+        var festival = _repository.GetFestivalBySlug(slug);
+        if (festival is null)
+        {
+            return NotFound();
+        }
+
+        ViewData["Title"] = festival.Name;
         ViewData["MetaDescription"] = festival.Summary;
 
-        var viewModel = new FestivalDetailsViewModel
+        return View(new FestivalDetailsViewModel
         {
             Festival = festival,
-            Entries = _repository.GetEntriesByFestival(id)
-        };
-
-        return View(viewModel);
+            Entries = _repository.GetEntriesByFestival(festival.Id),
+            RegionsById = _repository.GetRegions().ToDictionary(item => item.Id)
+        });
     }
 }

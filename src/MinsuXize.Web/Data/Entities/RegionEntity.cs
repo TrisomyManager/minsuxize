@@ -3,6 +3,7 @@ namespace MinsuXize.Web.Data.Entities;
 public sealed class RegionEntity
 {
     public int Id { get; set; }
+    public string Slug { get; set; } = string.Empty;
     public string Name { get; set; } = string.Empty;
     public string Type { get; set; } = string.Empty;
     public int? ParentId { get; set; }
@@ -10,4 +11,5 @@ public sealed class RegionEntity
     public string Summary { get; set; } = string.Empty;
     public string CulturalFocus { get; set; } = string.Empty;
     public string HighlightsJson { get; set; } = "[]";
+    public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 }

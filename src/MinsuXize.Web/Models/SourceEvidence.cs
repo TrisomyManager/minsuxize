@@ -4,6 +4,7 @@ public sealed class SourceEvidence
 {
     public required int Id { get; init; }
     public required string SourceType { get; init; }
+    public required string SourceLevel { get; init; }
     public required string Title { get; init; }
     public required string Contributor { get; init; }
     public required string RecordedAt { get; init; }

@@ -8,12 +8,16 @@ public sealed class EntrySearchViewModel
     public string? Keyword { get; init; }
     public int? RegionId { get; init; }
     public int? FestivalId { get; init; }
+    public string? ContentType { get; init; }
+    public string? Tag { get; init; }
     public string? InheritanceStatus { get; init; }
     public required IReadOnlyList<FolkloreEntry> Entries { get; init; }
     public required IReadOnlyDictionary<int, Region> RegionsById { get; init; }
     public required IReadOnlyDictionary<int, Festival> FestivalsById { get; init; }
     public required IReadOnlyList<SelectListItem> RegionOptions { get; init; }
     public required IReadOnlyList<SelectListItem> FestivalOptions { get; init; }
+    public required IReadOnlyList<SelectListItem> ContentTypeOptions { get; init; }
+    public required IReadOnlyList<SelectListItem> TagOptions { get; init; }
     public required IReadOnlyList<SelectListItem> InheritanceStatusOptions { get; init; }
     public string? SelectedRegionLabel { get; init; }
 }

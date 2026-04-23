@@ -1,0 +1,162 @@
+@model MinsuXize.Web.ViewModels.AdminEntryEditViewModel
+
+<section class="page-header">
+    <span class="eyebrow">编辑词条</span>
+    <h1>@Model.Title</h1>
+    <p>每行一个列表项。FAQ 使用“问题 | 答案”格式；相关推荐填写相关词条 slug，每行一个。</p>
+    <div class="page-actions">
+        <a class="button-secondary" asp-action="Entries">返回词条维护</a>
+        <a class="button-primary" asp-controller="Entries" asp-action="Details" asp-route-slug="@Model.Slug">查看公开页</a>
+    </div>
+    @if (TempData["AdminNotice"] is string notice)
+    {
+        <div class="meta-list">
+            <span>@notice</span>
+        </div>
+    }
+</section>
+
+<section class="content-section form-shell">
+    <form asp-action="EditEntry" asp-route-id="@Model.Id" method="post" class="entry-form">
+        @Html.AntiForgeryToken()
+        <input asp-for="Id" type="hidden" />
+        <div asp-validation-summary="ModelOnly" class="validation-summary"></div>
+
+        <div class="form-grid">
+            <div class="field-group">
+                <label asp-for="Title">标题</label>
+                <input asp-for="Title" class="field-input" />
+                <span asp-validation-for="Title" class="field-error"></span>
+            </div>
+            <div class="field-group">
+                <label asp-for="Slug">Slug</label>
+                <input asp-for="Slug" class="field-input" />
+                <span asp-validation-for="Slug" class="field-error"></span>
+            </div>
+            <div class="field-group">
+                <label asp-for="ContentType">内容类型</label>
+                <select asp-for="ContentType" asp-items="Model.ContentTypeOptions" class="field-input"></select>
+            </div>
+            <div class="field-group">
+                <label asp-for="RegionId">地区</label>
+                <select asp-for="RegionId" asp-items="Model.RegionOptions" class="field-input"></select>
+            </div>
+            <div class="field-group">
+                <label asp-for="FestivalId">节日</label>
+                <select asp-for="FestivalId" asp-items="Model.FestivalOptions" class="field-input"></select>
+            </div>
+            <div class="field-group">
+                <label asp-for="Status">发布状态</label>
+                <input asp-for="Status" class="field-input" />
+            </div>
+        </div>
+
+        <div class="field-group">
+            <label asp-for="Summary">摘要</label>
+            <textarea asp-for="Summary" class="field-input"></textarea>
+            <span asp-validation-for="Summary" class="field-error"></span>
+        </div>
+
+        <div class="form-section">
+            <h2>结构化状态</h2>
+            <div class="form-grid">
+                <div class="field-group">
+                    <label asp-for="ReviewStatus">审核状态</label>
+                    <select asp-for="ReviewStatus" asp-items="Model.ReviewStatusOptions" class="field-input"></select>
+                </div>
+                <div class="field-group">
+                    <label asp-for="ConfidenceLevel">置信度</label>
+                    <select asp-for="ConfidenceLevel" asp-items="Model.ConfidenceLevelOptions" class="field-input"></select>
+                </div>
+                <div class="field-group">
+                    <label asp-for="SourceGrade">来源等级</label>
+                    <select asp-for="SourceGrade" asp-items="Model.SourceGradeOptions" class="field-input"></select>
+                </div>
+                <div class="field-group">
+                    <label asp-for="ChangeLog">修改说明</label>
+                    <input asp-for="ChangeLog" class="field-input" />
+                </div>
+            </div>
+        </div>
+
+        <div class="form-section">
+            <h2>模板字段</h2>
+            <div class="field-group">
+                <label asp-for="RegionFieldsJson">Region fields JSON</label>
+                <textarea asp-for="RegionFieldsJson" class="field-input" rows="4"></textarea>
+                <span asp-validation-for="RegionFieldsJson" class="field-error"></span>
+            </div>
+            <div class="form-grid">
+                <div class="field-group">
+                    <label asp-for="MaterialsText">Materials，每行一个</label>
+                    <textarea asp-for="MaterialsText" class="field-input"></textarea>
+                </div>
+                <div class="field-group">
+                    <label asp-for="PreparationsText">Preparations，每行一个</label>
+                    <textarea asp-for="PreparationsText" class="field-input"></textarea>
+                </div>
+                <div class="field-group">
+                    <label asp-for="StepsText">Steps，每行一个</label>
+                    <textarea asp-for="StepsText" class="field-input"></textarea>
+                </div>
+                <div class="field-group">
+                    <label asp-for="TaboosText">Taboos，每行一个</label>
+                    <textarea asp-for="TaboosText" class="field-input"></textarea>
+                </div>
+                <div class="field-group">
+                    <label asp-for="RegionalDifferencesText">RegionalDifferences，每行一个</label>
+                    <textarea asp-for="RegionalDifferencesText" class="field-input"></textarea>
+                </div>
+                <div class="field-group">
+                    <label asp-for="TagsText">Tags，每行一个</label>
+                    <textarea asp-for="TagsText" class="field-input"></textarea>
+                </div>
+            </div>
+        </div>
+
+        <div class="form-section">
+            <h2>背景内容</h2>
+            <div class="field-group">
+                <label asp-for="HistoricalOrigin">历史渊源</label>
+                <textarea asp-for="HistoricalOrigin" class="field-input"></textarea>
+            </div>
+            <div class="field-group">
+                <label asp-for="SymbolicMeaning">文化含义</label>
+                <textarea asp-for="SymbolicMeaning" class="field-input"></textarea>
+            </div>
+            <div class="field-group">
+                <label asp-for="InheritanceStatus">存续状态</label>
+                <textarea asp-for="InheritanceStatus" class="field-input"></textarea>
+            </div>
+            <div class="field-group">
+                <label asp-for="ChangeNotes">变化说明</label>
+                <textarea asp-for="ChangeNotes" class="field-input"></textarea>
+            </div>
+            <div class="field-group">
+                <label asp-for="OralText">口述文本</label>
+                <textarea asp-for="OralText" class="field-input"></textarea>
+            </div>
+        </div>
+
+        <div class="form-section">
+            <h2>FAQ 与关联</h2>
+            <div class="field-group">
+                <label asp-for="FaqLines">FAQ，每行：问题 | 答案</label>
+                <textarea asp-for="FaqLines" class="field-input" rows="7"></textarea>
+            </div>
+            <div class="field-group">
+                <label asp-for="RelatedEntrySlugs">相关推荐 slug，每行一个</label>
+                <textarea asp-for="RelatedEntrySlugs" class="field-input" rows="5"></textarea>
+            </div>
+        </div>
+
+        <div class="form-actions">
+            <button type="submit" class="button-primary">保存词条</button>
+            <a class="button-secondary" asp-action="Entries">取消</a>
+        </div>
+    </form>
+</section>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

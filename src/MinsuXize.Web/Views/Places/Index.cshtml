@@ -1,0 +1,41 @@
+@model MinsuXize.Web.ViewModels.RegionIndexViewModel
+
+<section class="page-header">
+    <nav class="breadcrumb-line" aria-label="面包屑">
+        <a asp-controller="Home" asp-action="Index">首页</a>
+        <span>/</span>
+        <span>地区</span>
+    </nav>
+    <span class="eyebrow">Places</span>
+    <h1>按地区浏览</h1>
+    <p>从省、市、区县、乡镇和村落进入民俗内容。地区页会汇总子地区和相关词条。</p>
+    <div class="meta-list">
+        <span>@Model.RegionCount 个地区节点</span>
+    </div>
+</section>
+
+<section class="content-section search-shell">
+    <form asp-action="Index" method="get" class="search-form">
+        <div class="search-main-row">
+            <input class="search-keyword-input" type="search" name="keyword" value="@Model.Keyword" placeholder="搜索省、市、乡镇、村落或文化关键词" />
+            <button type="submit" class="search-submit-button">搜索地区</button>
+        </div>
+    </form>
+</section>
+
+<section class="content-section">
+    <div class="result-grid">
+        @foreach (var region in Model.Regions)
+        {
+            <article class="surface-card">
+                <span class="footer-label">@region.Type</span>
+                <h2>@region.Name</h2>
+                <p>@region.Summary</p>
+                <div class="meta-list">
+                    <span>@region.FullPath</span>
+                </div>
+                <a class="text-link" asp-action="Details" asp-route-slug="@region.Slug">查看地区页</a>
+            </article>
+        }
+    </div>
+</section>

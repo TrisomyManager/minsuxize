@@ -6,7 +6,7 @@ using MinsuXize.Web.ViewModels;
 
 namespace MinsuXize.Web.Controllers;
 
-[Route("feedback")]
+[Route("submit")]
 public sealed class SubmitController : Controller
 {
     private readonly IFolkloreRepository _repository;
@@ -17,10 +17,11 @@ public sealed class SubmitController : Controller
     }
 
     [HttpGet("")]
+    [HttpGet("/feedback")]
     public IActionResult Create(int? entryId)
     {
-        ViewData["Title"] = "提交补充";
-        ViewData["MetaDescription"] = "提交地方习俗的补充、纠错或新线索，方便后续继续整理和核对。";
+        ViewData["Title"] = "投稿与纠错";
+        ViewData["MetaDescription"] = "提交民俗词条补充、来源线索或纠错信息，进入待核实整理流程。";
 
         var model = new SubmitEntryViewModel();
         if (entryId.HasValue)
@@ -30,10 +31,11 @@ public sealed class SubmitController : Controller
             {
                 model.RelatedEntryId = entry.Id;
                 model.RelatedEntryTitle = entry.Title;
+                model.ContentType = entry.ContentType;
                 model.RegionId = entry.RegionId;
                 model.FestivalId = entry.FestivalId;
                 model.Title = entry.Title;
-                model.ChangeLog = "针对现有公开条目补充或纠错";
+                model.ChangeLog = "针对现有公开词条补充或纠错";
             }
         }
 
@@ -41,11 +43,12 @@ public sealed class SubmitController : Controller
     }
 
     [HttpPost("")]
+    [HttpPost("/feedback")]
     [ValidateAntiForgeryToken]
     public IActionResult Create(SubmitEntryViewModel model)
     {
-        ViewData["Title"] = "提交补充";
-        ViewData["MetaDescription"] = "提交地方习俗的补充、纠错或新线索，方便后续继续整理和核对。";
+        ViewData["Title"] = "投稿与纠错";
+        ViewData["MetaDescription"] = "提交民俗词条补充、来源线索或纠错信息，进入待核实整理流程。";
 
         if (model.RelatedEntryId.HasValue)
         {
@@ -60,6 +63,8 @@ public sealed class SubmitController : Controller
 
         var submissionId = _repository.CreateSubmission(new SubmissionInput
         {
+            RelatedEntryId = model.RelatedEntryId,
+            ContentType = model.ContentType,
             ContributorName = model.ContributorName,
             RegionId = model.RegionId.Value,
             FestivalId = model.FestivalId.Value,
@@ -95,10 +100,15 @@ public sealed class SubmitController : Controller
     private SubmitEntryViewModel BuildFormModel(SubmitEntryViewModel model)
     {
         model.Regions = RegionPresentation.BuildRegionOptions(_repository.GetRegions(), model.RegionId, "国家");
-
         model.Festivals = _repository.GetFestivals()
             .Select(item => new SelectListItem($"{item.Name} | {item.LunarLabel}", item.Id.ToString(), item.Id == model.FestivalId))
             .ToList();
+        model.ContentTypes =
+        [
+            new SelectListItem("仪式", "ritual", model.ContentType == "ritual"),
+            new SelectListItem("节日", "festival", model.ContentType == "festival"),
+            new SelectListItem("地区", "place", model.ContentType == "place")
+        ];
 
         return model;
     }
@@ -106,7 +116,7 @@ public sealed class SubmitController : Controller
     private static string? BuildChangeLog(SubmitEntryViewModel model)
     {
         var relationPrefix = model.RelatedEntryId.HasValue && !string.IsNullOrWhiteSpace(model.RelatedEntryTitle)
-            ? $"关联条目 #{model.RelatedEntryId}：{model.RelatedEntryTitle}"
+            ? $"关联词条 #{model.RelatedEntryId}：{model.RelatedEntryTitle}"
             : null;
 
         if (string.IsNullOrWhiteSpace(relationPrefix))

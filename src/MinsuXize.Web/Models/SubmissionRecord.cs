@@ -5,6 +5,8 @@ namespace MinsuXize.Web.Models;
 public sealed class SubmissionRecord
 {
     public required int Id { get; init; }
+    public int? RelatedEntryId { get; init; }
+    public string ContentType { get; init; } = "ritual";
     public required string ContributorName { get; init; }
     public required int RegionId { get; init; }
     public required int FestivalId { get; init; }

@@ -6,15 +6,25 @@ public interface IFolkloreRepository
 {
     IReadOnlyList<Region> GetRegions();
     Region? GetRegionById(int id);
+    Region? GetRegionBySlug(string slug);
     IReadOnlyList<Region> GetChildRegions(int parentId);
     IReadOnlyList<int> GetRegionTreeIds(int regionId);
+
     IReadOnlyList<Festival> GetFestivals();
     Festival? GetFestivalById(int id);
+    Festival? GetFestivalBySlug(string slug);
+
     IReadOnlyList<FolkloreEntry> GetEntries();
+    IReadOnlyList<FolkloreEntry> GetEntriesByContentType(string contentType);
     FolkloreEntry? GetEntryById(int id);
+    FolkloreEntry? GetEntryBySlug(string slug);
     IReadOnlyList<FolkloreEntry> GetEntriesByRegion(int regionId);
     IReadOnlyList<FolkloreEntry> GetEntriesByFestival(int festivalId);
+    IReadOnlyList<FolkloreEntry> GetRelatedEntries(int entryId, int take = 4);
+    IReadOnlyList<EntryFaq> GetFaqsForEntry(int entryId);
     IReadOnlyList<SourceEvidence> GetSourcesForEntry(int entryId);
+    StructuredKnowledgeEntry? GetStructuredEntry(string slug);
+
     IReadOnlyList<SubmissionRecord> GetSubmissions();
     SubmissionRecord? GetSubmissionById(int id);
     int GetPendingSubmissionCount();

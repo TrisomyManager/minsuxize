@@ -1,0 +1,43 @@
+@model MinsuXize.Web.ViewModels.AdminEntryListViewModel
+
+<section class="page-header">
+    <span class="eyebrow">词条维护</span>
+    <h1>结构化词条</h1>
+    <p>集中查看公开词条的地区、节日、审核状态和置信度，并进入编辑页维护 FAQ、关联词条和结构化字段。</p>
+    <div class="page-actions">
+        <a class="button-secondary" asp-action="Index">投稿审核</a>
+        <a class="button-primary" asp-controller="Entries" asp-action="Index">查看公开词条</a>
+    </div>
+</section>
+
+<section class="content-section">
+    <div class="result-grid">
+        @foreach (var entry in Model.Entries)
+        {
+            var region = Model.RegionsById[entry.RegionId];
+            var festival = Model.FestivalsById[entry.FestivalId];
+
+            <article class="surface-card">
+                <div class="surface-link-head">
+                    <div>
+                        <span class="footer-label">@entry.ContentType</span>
+                        <h2>@entry.Title</h2>
+                    </div>
+                    <span class="pill">@entry.ReviewStatus</span>
+                </div>
+                <p>@entry.Summary</p>
+                <div class="meta-list">
+                    <span>@region.FullPath</span>
+                    <span>@festival.Name</span>
+                    <span>置信度 @entry.ConfidenceLevel</span>
+                    <span>v@(entry.Version)</span>
+                </div>
+                <div class="utility-actions">
+                    <a class="button-primary" asp-action="EditEntry" asp-route-id="@entry.Id">编辑</a>
+                    <a class="button-secondary" asp-controller="Entries" asp-action="Details" asp-route-slug="@entry.Slug">公开页</a>
+                    <a class="button-secondary" href="@($"/api/entries/{entry.Slug}.json")">JSON</a>
+                </div>
+            </article>
+        }
+    </div>
+</section>

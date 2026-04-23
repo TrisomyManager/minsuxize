@@ -1,6 +1,6 @@
 @model MinsuXize.Web.ViewModels.AdminDashboardViewModel
 @{
-    ViewData["Title"] = "反馈整理后台";
+    ViewData["Title"] = "投稿审核";
 
     var pendingCount = Model.Submissions.Count(item => item.Status == MinsuXize.Web.Models.SubmissionStatus.PendingReview);
     var revisionCount = Model.Submissions.Count(item => item.Status == MinsuXize.Web.Models.SubmissionStatus.NeedsRevision);
@@ -10,8 +10,8 @@
         status switch
         {
             MinsuXize.Web.Models.SubmissionStatus.PendingReview => "待审核",
-            MinsuXize.Web.Models.SubmissionStatus.NeedsRevision => "已退回补充",
-            MinsuXize.Web.Models.SubmissionStatus.Approved => "已发布",
+            MinsuXize.Web.Models.SubmissionStatus.NeedsRevision => "退回补充",
+            MinsuXize.Web.Models.SubmissionStatus.Approved => "已确认",
             MinsuXize.Web.Models.SubmissionStatus.Rejected => "已归档",
             _ => status.ToString()
         };
@@ -28,14 +28,13 @@
 }
 
 <section class="page-header">
-    <span class="eyebrow">反馈整理</span>
-    <h1>反馈处理队列</h1>
-    <p>
-        这里用于集中查看读者提交的补充和纠错，记录处理意见，并完成最基本的状态调整。
-    </p>
+    <span class="eyebrow">投稿审核</span>
+    <h1>投稿处理队列</h1>
+    <p>集中查看读者提交的补充和纠错，记录处理意见，并完成最基本的状态调整。</p>
     <div class="page-actions">
-        <a class="button-primary" asp-controller="Submit" asp-action="Create">新建测试反馈</a>
-        <a class="button-secondary" asp-controller="Home" asp-action="Index">返回公众页面</a>
+        <a class="button-primary" asp-controller="Submit" asp-action="Create">新建测试投稿</a>
+        <a class="button-secondary" asp-action="Entries">词条维护</a>
+        <a class="button-secondary" asp-controller="Home" asp-action="Index">公开页面</a>
     </div>
 </section>
 
@@ -43,29 +42,26 @@
     <article class="surface-card">
         <span class="footer-label">待审核</span>
         <h2>@pendingCount</h2>
-        <p>等待首次查看和处理的反馈。</p>
+        <p>等待首次查看和处理的投稿。</p>
     </article>
     <article class="surface-card">
-        <span class="footer-label">已退回补充</span>
+        <span class="footer-label">退回补充</span>
         <h2>@revisionCount</h2>
-        <p>仍需补充来源或关键细节的反馈。</p>
+        <p>仍需补充来源或关键细节的投稿。</p>
     </article>
     <article class="surface-card">
-        <span class="footer-label">已发布</span>
+        <span class="footer-label">已确认</span>
         <h2>@approvedCount</h2>
-        <p>已经确认可继续整理的反馈记录。</p>
+        <p>已经确认可继续整理的投稿记录。</p>
     </article>
 </section>
 
 @if (Model.Submissions.Any())
 {
-    <partial name="_BulkActions" model="Model" />
-
     <section class="content-section">
         <div class="section-heading">
             <span class="eyebrow">当前队列</span>
-            <h2>所有反馈记录</h2>
-            <p>这里按反馈记录展示地点、节令、摘要和来源说明，方便快速判断如何处理。</p>
+            <h2>所有投稿记录</h2>
         </div>
 
         <div class="dashboard-grid">
@@ -77,79 +73,42 @@
                 <article class="surface-card submission-card">
                     <div class="submission-head">
                         <div>
-                            <label class="submission-checkbox-row" for="submission-@item.Id">
-                                <input type="checkbox" class="submission-select" value="@item.Id" id="submission-@item.Id" />
-                                <span class="status-chip @GetStatusClass(item.Status)">@GetStatusText(item.Status)</span>
-                            </label>
+                            <span class="status-chip @GetStatusClass(item.Status)">@GetStatusText(item.Status)</span>
                             <h3>@item.Title</h3>
                         </div>
                         <div class="meta-list">
                             <span>#@item.Id</span>
-                            <span>v@(item.Version)</span>
+                            <span>@item.ContentType</span>
                         </div>
                     </div>
 
                     <div class="submission-body">
                         <p><strong>提交人：</strong>@item.ContributorName @(!string.IsNullOrWhiteSpace(item.Contact) ? $" | {item.Contact}" : string.Empty)</p>
                         <p><strong>地区：</strong>@region.FullPath</p>
-                        <p><strong>节令：</strong>@festival.Name</p>
+                        <p><strong>节日：</strong>@festival.Name</p>
                         <p><strong>摘要：</strong>@item.Summary</p>
                         <p><strong>来源说明：</strong>@item.SourceSummary</p>
-
                         @if (!string.IsNullOrWhiteSpace(item.ChangeLog))
                         {
                             <p><strong>补充说明：</strong>@item.ChangeLog</p>
                         }
-
-                        @if (item.Images.Any() || item.Videos.Any() || item.Audios.Any())
-                        {
-                            <div class="media-panel">
-                                <strong>附加资料</strong>
-                                <ul class="media-links">
-                                    @foreach (var image in item.Images.Take(3))
-                                    {
-                                        <li><a href="@image" target="_blank">图片链接</a></li>
-                                    }
-                                    @foreach (var video in item.Videos.Take(2))
-                                    {
-                                        <li><a href="@video" target="_blank">视频链接</a></li>
-                                    }
-                                    @foreach (var audio in item.Audios.Take(2))
-                                    {
-                                        <li><a href="@audio" target="_blank">音频链接</a></li>
-                                    }
-                                </ul>
-                            </div>
-                        }
-
-                        @if (item.Location is not null)
-                        {
-                            <div class="location-panel">
-                                <strong>地点补充</strong>
-                                <p>@item.Location.Latitude, @item.Location.Longitude</p>
-                                @if (!string.IsNullOrWhiteSpace(item.Location.Address))
-                                {
-                                    <p class="muted">@item.Location.Address</p>
-                                }
-                            </div>
-                        }
-
                         <div class="utility-row">
-                            <span class="muted">最后更新：@item.UpdatedAt.ToLocalTime().ToString("yyyy-MM-dd HH:mm")</span>
-                            <a class="text-link" asp-action="History" asp-route-id="@item.Id">查看处理记录</a>
+                            <span class="muted">提交：@item.SubmittedAt.ToLocalTime().ToString("yyyy-MM-dd HH:mm")</span>
+                            <a class="text-link" asp-action="History" asp-route-id="@item.Id">处理记录</a>
                         </div>
                     </div>
 
                     <form asp-action="Review" method="post" class="review-form">
+                        @Html.AntiForgeryToken()
                         <input type="hidden" name="id" value="@item.Id" />
                         <div class="field-group">
                             <label class="field-label" for="reviewerNote-@item.Id">处理备注</label>
-                            <textarea id="reviewerNote-@item.Id" name="reviewerNote" rows="3" class="field-input" placeholder="记录本次判断依据、待补充项或处理结论。">@item.ReviewerNote</textarea>
+                            <textarea id="reviewerNote-@item.Id" name="reviewerNote" rows="3" class="field-input" placeholder="记录判断依据、待补充项或处理结论。">@item.ReviewerNote</textarea>
                         </div>
                         <div class="utility-actions">
                             <button type="submit" class="button-secondary" name="status" value="@MinsuXize.Web.Models.SubmissionStatus.NeedsRevision">退回补充</button>
                             <button type="submit" class="button-danger" name="status" value="@MinsuXize.Web.Models.SubmissionStatus.Rejected">归档</button>
-                            <button type="submit" class="button-primary" name="status" value="@MinsuXize.Web.Models.SubmissionStatus.Approved">发布</button>
+                            <button type="submit" class="button-primary" name="status" value="@MinsuXize.Web.Models.SubmissionStatus.Approved">确认</button>
                         </div>
                     </form>
                 </article>
@@ -160,10 +119,10 @@
 else
 {
     <div class="content-section empty-state">
-        <h3>当前没有待处理反馈</h3>
-        <p>队列已经清空，可以回到公众页面继续浏览，或者创建一条测试反馈验证流程。</p>
+        <h3>当前没有待处理投稿</h3>
+        <p>队列已经清空，可以回到公开页面继续浏览，或创建一条测试投稿验证流程。</p>
         <div class="utility-actions">
-            <a class="button-primary" asp-controller="Submit" asp-action="Create">创建测试反馈</a>
+            <a class="button-primary" asp-controller="Submit" asp-action="Create">创建测试投稿</a>
             <a class="button-secondary" asp-controller="Home" asp-action="Index">返回首页</a>
         </div>
     </div>

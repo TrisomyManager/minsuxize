@@ -1,0 +1,90 @@
+@model MinsuXize.Web.ViewModels.RegionDetailsViewModel
+
+<section class="page-header">
+    <nav class="breadcrumb-line" aria-label="面包屑">
+        <a asp-controller="Home" asp-action="Index">首页</a>
+        <span>/</span>
+        <a asp-controller="Places" asp-action="Index">地区</a>
+        <span>/</span>
+        <span>@Model.Region.Name</span>
+    </nav>
+    <span class="eyebrow">@Model.Region.Type</span>
+    <h1>@Model.Region.Name</h1>
+    <p>@Model.Region.Summary</p>
+    <div class="meta-list">
+        <span>@Model.Region.FullPath</span>
+        <span>@Model.Entries.Count 条词条</span>
+        <span>@Model.DescendantRegionCount 个下级地区</span>
+    </div>
+</section>
+
+<section class="content-section split-layout">
+    <section class="section-panel">
+        <span class="eyebrow">文化重点</span>
+        <h2>地区说明</h2>
+        <p>@Model.Region.CulturalFocus</p>
+        @if (Model.Region.Highlights.Count > 0)
+        {
+            <div class="chip-row">
+                @foreach (var item in Model.Region.Highlights)
+                {
+                    <span class="pill">@item</span>
+                }
+            </div>
+        }
+    </section>
+
+    <section class="section-panel">
+        <span class="eyebrow">层级</span>
+        <h2>上级与下级地区</h2>
+        @if (Model.ParentRegion is not null)
+        {
+            <p>上级：<a class="text-link" asp-action="Details" asp-route-slug="@Model.ParentRegion.Slug">@Model.ParentRegion.FullPath</a></p>
+        }
+        @if (Model.ChildRegions.Count == 0)
+        {
+            <p class="muted">暂无下级地区。</p>
+        }
+        else
+        {
+            <ul class="compact-list link-list">
+                @foreach (var child in Model.ChildRegions)
+                {
+                    <li><a asp-action="Details" asp-route-slug="@child.Slug">@child.Name</a></li>
+                }
+            </ul>
+        }
+    </section>
+</section>
+
+<section class="content-section">
+    <div class="section-heading">
+        <span class="eyebrow">相关词条</span>
+        <h2>@Model.Region.Name 的民俗记录</h2>
+    </div>
+    @if (Model.Entries.Count == 0)
+    {
+        <div class="empty-state">
+            <p>这个地区还没有公开词条，欢迎提交线索。</p>
+            <a class="button-primary" asp-controller="Submit" asp-action="Create">提交资料</a>
+        </div>
+    }
+    else
+    {
+        <div class="result-grid">
+            @foreach (var entry in Model.Entries)
+            {
+                <article class="surface-card">
+                    <span class="footer-label">@entry.ContentType</span>
+                    <h3>@entry.Title</h3>
+                    <p>@entry.Summary</p>
+                    <div class="meta-list">
+                        <span>@entry.ReviewStatus</span>
+                        <span>更新 @entry.UpdatedAt.ToLocalTime().ToString("yyyy-MM-dd")</span>
+                    </div>
+                    <a class="text-link" asp-controller="Entries" asp-action="Details" asp-route-slug="@entry.Slug">查看词条</a>
+                </article>
+            }
+        </div>
+    }
+</section>

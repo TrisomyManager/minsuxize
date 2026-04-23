@@ -1,13 +1,19 @@
+@using MinsuXize.Web.Options
+@inject Microsoft.Extensions.Options.IOptions<SiteOptions> SiteOptions
 @{
     var siteName = "中国民俗细则";
     var request = Context.Request;
     var pageTitle = ViewData["Title"]?.ToString();
-    var metaDescription = ViewData["MetaDescription"]?.ToString() ?? "面向公众开放的地方习俗资料页，欢迎浏览、补充和纠错。";
-    var metaKeywords = ViewData["MetaKeywords"]?.ToString() ?? "民俗,地方习俗,节日,地方文化,口述资料";
+    var metaDescription = ViewData["MetaDescription"]?.ToString() ?? "面向用户、搜索引擎与 AI 协作维护的结构化中国民俗知识库。";
+    var metaKeywords = ViewData["MetaKeywords"]?.ToString() ?? "民俗,地方习俗,节日,仪式,民俗知识库";
     var metaRobots = ViewData["MetaRobots"]?.ToString() ?? "index, follow, max-image-preview:large";
     var fullTitle = string.IsNullOrWhiteSpace(pageTitle) ? siteName : $"{pageTitle} | {siteName}";
-    var canonicalUrl = ViewData["CanonicalUrl"]?.ToString()
-        ?? $"{request.Scheme}://{request.Host}{request.PathBase}{request.Path}{request.QueryString}";
+    var baseUrl = SiteOptions.Value.BaseUrl.TrimEnd('/') + "/";
+    var canonicalUrl = ViewData["CanonicalUrl"]?.ToString();
+    if (string.IsNullOrWhiteSpace(canonicalUrl))
+    {
+        canonicalUrl = new Uri(new Uri(baseUrl), $"{request.PathBase}{request.Path}").ToString();
+    }
 }
 <!DOCTYPE html>
 <html lang="zh-CN">
@@ -17,7 +23,7 @@
     <meta name="description" content="@metaDescription" />
     <meta name="keywords" content="@metaKeywords" />
     <meta name="robots" content="@metaRobots" />
-    <meta name="theme-color" content="#efe2cf" />
+    <meta name="theme-color" content="#f6f0e4" />
     <meta name="format-detection" content="telephone=no" />
     <meta property="og:site_name" content="@siteName" />
     <meta property="og:locale" content="zh_CN" />
@@ -25,7 +31,7 @@
     <meta property="og:title" content="@fullTitle" />
     <meta property="og:description" content="@metaDescription" />
     <meta property="og:url" content="@canonicalUrl" />
-    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:card" content="summary" />
     <meta name="twitter:title" content="@fullTitle" />
     <meta name="twitter:description" content="@metaDescription" />
     <title>@fullTitle</title>
@@ -36,25 +42,26 @@
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
 </head>
 <body class="public-mode">
-    <div class="site-backdrop"></div>
     <div class="site-shell">
         <header class="site-header">
             <div class="shell-inner header-row">
                 <a class="brand-mark" asp-controller="Home" asp-action="Index" aria-label="返回中国民俗细则首页">
-                    <span class="brand-kicker">地方风俗记录</span>
+                    <span class="brand-kicker">结构化民俗知识库</span>
                     <strong>中国民俗细则</strong>
-                    <span class="brand-note">记录各地仍在流传的做法，欢迎浏览、补充和纠错</span>
+                    <span class="brand-note">按地区、节日、仪式和来源整理</span>
                 </a>
 
                 <nav class="site-nav" aria-label="主导航">
                     <a asp-controller="Home" asp-action="Index">首页</a>
-                    <a asp-controller="Entries" asp-action="Index">习俗浏览</a>
-                    <a asp-controller="Submit" asp-action="Create">提交补充</a>
-                    <a asp-controller="Home" asp-action="About">关于项目</a>
+                    <a asp-controller="Entries" asp-action="Index">词条</a>
+                    <a asp-controller="Places" asp-action="Index">地区</a>
+                    <a asp-controller="Festivals" asp-action="Index">节日</a>
+                    <a asp-controller="Rituals" asp-action="Index">仪式</a>
+                    <a asp-controller="Home" asp-action="About">关于</a>
                 </nav>
 
                 <div class="header-actions">
-                    <a class="button-primary button-small" asp-controller="Submit" asp-action="Create">我要补充</a>
+                    <a class="button-primary button-small" asp-controller="Submit" asp-action="Create">投稿</a>
                 </div>
             </div>
         </header>
@@ -67,22 +74,22 @@
             <div class="shell-inner footer-layout">
                 <div>
                     <span class="eyebrow">持续整理中</span>
-                    <h2>先把看得见、用得上的地方习俗资料整理出来</h2>
+                    <h2>把地方民俗资料整理成可检索、可核对、可继续扩展的知识库</h2>
                     <p>
-                        这里收录的是面向公众开放的地方习俗记录。页面内容会继续补充，
-                        如果你发现遗漏、错误或知道更详细的做法，也欢迎告诉我们。
+                        本站优先保留来源、更新时间、待核实状态和地区差异。内容不代表已经收齐，
+                        也欢迎通过投稿入口补充真实线索、来源说明和纠错意见。
                     </p>
                 </div>
                 <div class="footer-column">
                     <span class="footer-label">浏览入口</span>
-                    <a asp-controller="Entries" asp-action="Index">浏览习俗列表</a>
-                    <a asp-controller="Regions" asp-action="Index">按地区查看</a>
-                    <a asp-controller="Festivals" asp-action="Index">按节令查看</a>
-                    <a asp-controller="Home" asp-action="About">了解项目</a>
+                    <a asp-controller="Entries" asp-action="Index">民俗词条</a>
+                    <a asp-controller="Places" asp-action="Index">按地区浏览</a>
+                    <a asp-controller="Festivals" asp-action="Index">按节日浏览</a>
+                    <a asp-controller="Rituals" asp-action="Index">按仪式浏览</a>
                 </div>
                 <div class="footer-column">
-                    <span class="footer-label">补充说明</span>
-                    <a asp-controller="Submit" asp-action="Create">提交补充或纠错</a>
+                    <span class="footer-label">参与维护</span>
+                    <a asp-controller="Submit" asp-action="Create">投稿与纠错</a>
                     <a asp-controller="Home" asp-action="SubmissionGuidelines">提交说明</a>
                     <a asp-controller="Home" asp-action="Privacy">隐私说明</a>
                     <a asp-controller="Home" asp-action="Terms">使用条款</a>

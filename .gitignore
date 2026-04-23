@@ -31,6 +31,8 @@ archive/
 *.bak
 .playwright-cli/
 output/playwright/
+output/*.log
+tmp/
 
 # Legacy nested clone
 minsuxize/

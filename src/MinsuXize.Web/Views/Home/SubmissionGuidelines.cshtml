@@ -1,63 +1,23 @@
-@{
-    ViewData["MetaKeywords"] = "反馈提交,补充说明,来源要求,民俗资料";
-}
-
 <section class="page-header">
     <span class="eyebrow">提交说明</span>
-    <h1>提交前，先准备这几类基础信息</h1>
-    <p>最有帮助的补充，通常能说明发生地点、对应节令或时间节点、具体做法，以及信息来自哪里。</p>
+    <h1>怎样提交更容易被整理</h1>
+    <p>不需要一次写完完整论文。只要线索真实、来源可说明，就可以成为后续核对的起点。</p>
 </section>
 
-<section class="content-section policy-grid">
-    <article class="section-panel copy-stack">
-        <span class="eyebrow">建议优先填写</span>
-        <h2>这些内容最有帮助</h2>
+<section class="content-section split-layout">
+    <section class="section-panel">
+        <h2>建议包含</h2>
         <ul class="compact-list">
-            <li>发生地点，尽量具体到县、乡镇、村或更明确的位置</li>
-            <li>对应的节日、节气或时间节点</li>
-            <li>具体流程、参与者、供品、禁忌或地方差异</li>
-            <li>来源说明，例如口述、观察、文献或影像记录</li>
+            <li>地点：尽量到乡镇、村落或社区。</li>
+            <li>时间：节日、农历日期、一天中的大致时段。</li>
+            <li>流程：按先后顺序写清楚。</li>
+            <li>材料：供品、工具、服饰、文本或道具。</li>
+            <li>来源：亲历、口述、田野笔记、地方志、公开链接等。</li>
         </ul>
-    </article>
-
-    <article class="section-panel copy-stack">
-        <span class="eyebrow">如果还能补充</span>
-        <h2>这些信息会更便于整理</h2>
-        <ul class="compact-list">
-            <li>图片、音频、视频等稳定链接</li>
-            <li>更明确的记录时间或受访对象</li>
-            <li>更具体的地点描述</li>
-            <li>如果是纠错，请直接说明原内容哪里不准确</li>
-        </ul>
-    </article>
-</section>
-
-<section class="content-section three-column">
-    <article class="section-panel copy-stack">
-        <span class="eyebrow">提交后会怎样</span>
-        <h2>我们会先做基础核对</h2>
-        <p>收到补充后，会先查看地点、摘要和来源说明是否清楚，再决定是直接整理、继续补充，还是先暂存留待核查。</p>
-    </article>
-
-    <article class="section-panel copy-stack">
-        <span class="eyebrow">这一步不用担心</span>
-        <h2>不要求一次写得很完整</h2>
-        <p>当前不要求正式论文格式，也不要求复杂上传。只要线索真实、表达清楚，就足以成为有价值的补充。</p>
-    </article>
-
-    <article class="section-panel copy-stack">
-        <span class="eyebrow">更高效的做法</span>
-        <h2>先看看是否已有相近条目</h2>
-        <p>如果相近内容已经存在，优先补充已有条目的差异和遗漏，会比重新创建一条重复记录更方便整理。</p>
-    </article>
-</section>
-
-<section class="content-section section-panel copy-stack">
-    <span class="eyebrow">开始补充</span>
-    <h2>准备好了就进入提交页</h2>
-    <p>当前支持提交结构化文字、媒体链接和基础位置说明，足以开始积累真实资料。</p>
-    <div class="utility-actions">
+    </section>
+    <section class="section-panel">
+        <h2>审核状态</h2>
+        <p>提交内容默认进入待核实状态。整理时会根据来源等级、可复核性和地区信息完整度调整置信度。</p>
         <a class="button-primary" asp-controller="Submit" asp-action="Create">开始提交</a>
-        <a class="button-secondary" asp-controller="Entries" asp-action="Index">先浏览公开内容</a>
-    </div>
+    </section>
 </section>

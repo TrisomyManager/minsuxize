@@ -1,168 +1,141 @@
 @model MinsuXize.Web.ViewModels.EntryDetailsViewModel
-@inject IWebHostEnvironment WebHostEnvironment
-@{
-    ViewData["Title"] = Model.Entry.Title;
-    var statusLabel = string.IsNullOrWhiteSpace(Model.Entry.Status) ? "待整理" : Model.Entry.Status;
-    var visibleImages = Model.Entry.Images.Where(IsRenderableMedia).ToList();
-    var visibleVideos = Model.Entry.Videos.Where(IsRenderableMedia).ToList();
-    var visibleAudios = Model.Entry.Audios.Where(IsRenderableMedia).ToList();
-}
-
-@functions {
-    private bool IsRenderableMedia(string? value)
-    {
-        if (string.IsNullOrWhiteSpace(value))
-        {
-            return false;
-        }
-
-        if (Uri.TryCreate(value, UriKind.Absolute, out var uri))
-        {
-            return uri.Scheme is "http" or "https";
-        }
-
-        var relativePath = value
-            .Trim()
-            .TrimStart('~', '/', '\\')
-            .Replace('/', System.IO.Path.DirectorySeparatorChar)
-            .Replace('\\', System.IO.Path.DirectorySeparatorChar);
-
-        return System.IO.File.Exists(System.IO.Path.Combine(WebHostEnvironment.WebRootPath, relativePath));
-    }
-
-    private string MediaUrl(string value)
-    {
-        if (Uri.TryCreate(value, UriKind.Absolute, out var uri) && uri.Scheme is "http" or "https")
-        {
-            return value;
-        }
-
-        return Url.Content($"~/{value.Trim().TrimStart('~', '/', '\\')}");
-    }
-
-    private static string MediaFileName(string value)
-    {
-        if (Uri.TryCreate(value, UriKind.Absolute, out var uri))
-        {
-            return System.IO.Path.GetFileName(uri.LocalPath);
-        }
-
-        return System.IO.Path.GetFileName(value.Replace('\\', '/'));
-    }
-}
 
 <section class="page-header">
-    <span class="eyebrow">习俗详情</span>
+    <nav class="breadcrumb-line" aria-label="面包屑">
+        <a asp-controller="Home" asp-action="Index">首页</a>
+        <span>/</span>
+        <a asp-controller="Places" asp-action="Details" asp-route-slug="@Model.Region.Slug">@Model.Region.Name</a>
+        <span>/</span>
+        <a asp-controller="Festivals" asp-action="Details" asp-route-slug="@Model.Festival.Slug">@Model.Festival.Name</a>
+        <span>/</span>
+        <span>@Model.Entry.Title</span>
+    </nav>
+    <span class="eyebrow">@Model.Entry.ContentType</span>
     <h1>@Model.Entry.Title</h1>
     <p>@Model.Entry.Summary</p>
     <div class="meta-list">
         <span>@Model.Region.FullPath</span>
         <span>@Model.Festival.Name | @Model.Festival.LunarLabel</span>
-        <span>存续状态：@Model.Entry.InheritanceStatus</span>
-        <span>整理状态：@statusLabel</span>
+        <span>审核：@Model.Entry.ReviewStatus</span>
+        <span>置信度：@Model.Entry.ConfidenceLevel</span>
+        <span>更新：@Model.Entry.UpdatedAt.ToLocalTime().ToString("yyyy-MM-dd")</span>
     </div>
 </section>
 
 <section class="content-section story-grid">
     <article class="entry-story">
-        <section class="content-section split-layout">
-            <section class="section-panel">
-                <span class="eyebrow">已知信息</span>
-                <h3>已整理出的核心资料</h3>
-                <p>包括目前已知的地点、流程、讲究、口述材料和来源说明，便于你快速了解这条记录的基本情况。</p>
-            </section>
-            <section class="section-panel">
-                <span class="eyebrow">持续补充中</span>
-                <h3>欢迎继续补充细节和纠错</h3>
-                <p>如果你知道更准确的顺序、供品、禁忌、参与者、地方差异或来源线索，可以直接从本页提交补充。</p>
-            </section>
+        <section class="detail-block">
+            <h2>摘要</h2>
+            <p>@Model.Entry.Summary</p>
         </section>
 
-        <div class="entry-overview">
-            <div class="section-heading">
-                <span class="eyebrow">背景说明</span>
-                <h2>历史背景与文化含义</h2>
-            </div>
-            <div class="split-layout">
-                <section class="section-panel">
-                    <h3>历史渊源</h3>
-                    <p>@Model.Entry.HistoricalOrigin</p>
-                </section>
-                <section class="section-panel">
-                    <h3>文化含义</h3>
-                    <p>@Model.Entry.SymbolicMeaning</p>
-                </section>
-            </div>
-        </div>
+        <section class="detail-block">
+            <h2>基本信息</h2>
+            <dl class="definition-list">
+                <dt>标题</dt>
+                <dd>@Model.Entry.Title</dd>
+                <dt>Slug</dt>
+                <dd>@Model.Entry.Slug</dd>
+                <dt>ContentType</dt>
+                <dd>@Model.Entry.ContentType</dd>
+                <dt>地区</dt>
+                <dd>@Model.Region.FullPath</dd>
+                <dt>材料</dt>
+                <dd>@string.Join("、", Model.Entry.ItemsUsed)</dd>
+                <dt>存续状态</dt>
+                <dd>@Model.Entry.InheritanceStatus</dd>
+            </dl>
+        </section>
 
-        <div class="content-section detail-grid">
-            <section class="section-panel">
-                <h3>流程概述</h3>
-                <ol class="ordered-list">
-                    @foreach (var step in Model.Entry.RitualProcess)
-                    {
-                        <li>@step</li>
-                    }
-                </ol>
-            </section>
-
-            <section class="section-panel">
-                <h3>常见物件</h3>
+        @if (Model.Entry.Preparations.Count > 0)
+        {
+            <section class="detail-block">
+                <h2>准备事项</h2>
                 <ul class="compact-list">
-                    @foreach (var item in Model.Entry.ItemsUsed)
+                    @foreach (var item in Model.Entry.Preparations)
                     {
                         <li>@item</li>
                     }
                 </ul>
             </section>
+        }
 
-            <section class="section-panel">
-                <h3>参与者</h3>
-                <ul class="compact-list">
-                    @foreach (var participant in Model.Entry.Participants)
-                    {
-                        <li>@participant</li>
-                    }
-                </ul>
-            </section>
-
-            <section class="section-panel">
-                <h3>禁忌与注意事项</h3>
-                <ul class="compact-list">
-                    @foreach (var taboo in Model.Entry.Taboos)
-                    {
-                        <li>@taboo</li>
-                    }
-                </ul>
-            </section>
-
-            <section class="section-panel">
-                <h3>口述内容</h3>
-                <blockquote class="oral-quote">@Model.Entry.OralText</blockquote>
-            </section>
-
-            <section class="section-panel">
-                <h3>近年的变化</h3>
-                <p>@Model.Entry.ChangeNotes</p>
-                @if (!string.IsNullOrWhiteSpace(Model.Entry.ChangeLog))
+        <section class="detail-block">
+            <h2>步骤</h2>
+            <ol class="ordered-list">
+                @foreach (var step in Model.Entry.RitualProcess)
                 {
-                    <p class="helper-copy">补充说明：@Model.Entry.ChangeLog</p>
+                    <li>@step</li>
                 }
-            </section>
-        </div>
+            </ol>
+        </section>
 
-        <section class="content-section timeline-shell">
-            <div class="section-heading">
-                <span class="eyebrow">来源说明</span>
-                <h2>这条记录目前依据哪些资料整理</h2>
-                <p>来源说明用于帮助读者理解内容从哪里来，也方便后续继续核对和补充。</p>
+        <section class="detail-block">
+            <h2>地区差异</h2>
+            @if (Model.Entry.RegionalDifferences.Count == 0)
+            {
+                <p class="muted">暂无可公开展示的地区差异，欢迎补充。</p>
+            }
+            else
+            {
+                <ul class="compact-list">
+                    @foreach (var item in Model.Entry.RegionalDifferences)
+                    {
+                        <li>@item</li>
+                    }
+                </ul>
+            }
+        </section>
+
+        <section class="detail-block">
+            <h2>禁忌与注意事项</h2>
+            <ul class="compact-list">
+                @foreach (var taboo in Model.Entry.Taboos)
+                {
+                    <li>@taboo</li>
+                }
+            </ul>
+        </section>
+
+        <section class="detail-block">
+            <h2>背景与含义</h2>
+            <div class="split-layout">
+                <section>
+                    <h3>历史渊源</h3>
+                    <p>@Model.Entry.HistoricalOrigin</p>
+                </section>
+                <section>
+                    <h3>文化含义</h3>
+                    <p>@Model.Entry.SymbolicMeaning</p>
+                </section>
             </div>
+        </section>
 
+        <section class="detail-block">
+            <h2>FAQ</h2>
+            @if (Model.Faqs.Count == 0)
+            {
+                <p class="muted">暂无问答，欢迎补充常见问题。</p>
+            }
+            else
+            {
+                <div class="faq-list">
+                    @foreach (var faq in Model.Faqs)
+                    {
+                        <article>
+                            <h3>@faq.Question</h3>
+                            <p>@faq.Answer</p>
+                        </article>
+                    }
+                </div>
+            }
+        </section>
+
+        <section class="detail-block">
+            <h2>来源说明</h2>
             @if (Model.Sources.Count == 0)
             {
-                <div class="empty-state">
-                    <p>这条记录的来源说明仍在补充中，后续会随资料核对继续完善。</p>
-                </div>
+                <p class="muted">这条记录的来源说明仍在补充中。</p>
             }
             else
             {
@@ -175,10 +148,10 @@
                                     <span class="footer-label">@source.SourceType</span>
                                     <h3>@source.Title</h3>
                                 </div>
-                                <span class="muted">@source.RecordedAt</span>
+                                <span class="pill">@source.SourceLevel</span>
                             </div>
                             <p>@source.Citation</p>
-                            <p class="muted">记录者：@source.Contributor</p>
+                            <p class="muted">记录者：@source.Contributor；记录时间：@source.RecordedAt</p>
                             @if (!string.IsNullOrWhiteSpace(source.Notes))
                             {
                                 <p class="helper-copy">@source.Notes</p>
@@ -192,79 +165,51 @@
 
     <aside class="entry-sidebar">
         <section class="section-panel">
-            <span class="eyebrow">条目信息</span>
-            <h3>基础信息</h3>
+            <span class="eyebrow">结构化状态</span>
+            <h2>词条元信息</h2>
             <ul class="info-list">
-                <li>地区：@Model.Region.Name</li>
-                <li>节令：@Model.Festival.Name</li>
-                <li>整理人：@Model.Entry.CreatedBy</li>
-                <li>版本：v@(Model.Entry.Version)</li>
-                <li>最后更新：@Model.Entry.UpdatedAt.ToLocalTime().ToString("yyyy-MM-dd HH:mm")</li>
+                <li>ReviewStatus：@Model.Entry.ReviewStatus</li>
+                <li>ConfidenceLevel：@Model.Entry.ConfidenceLevel</li>
+                <li>SourceGrade：@Model.Entry.SourceGrade</li>
+                <li>版本：@Model.Entry.Version</li>
+                <li>维护者：@Model.Entry.CreatedBy</li>
+                <li>最近更新：@Model.Entry.UpdatedAt.ToLocalTime().ToString("yyyy-MM-dd HH:mm")</li>
             </ul>
+            <a class="text-link" href="@($"/api/entries/{Model.Entry.Slug}.json")">查看 JSON</a>
         </section>
 
-        @if (Model.Entry.Location is not null)
-        {
-            <section class="location-panel">
-                <span class="eyebrow">地点补充</span>
-                <h3>位置说明</h3>
-                <p>@Model.Entry.Location.Latitude, @Model.Entry.Location.Longitude</p>
-                @if (!string.IsNullOrWhiteSpace(Model.Entry.Location.AddressDetail))
-                {
-                    <p class="muted">@Model.Entry.Location.AddressDetail</p>
-                }
-            </section>
-        }
-
-        @if (visibleImages.Any() || visibleVideos.Any() || visibleAudios.Any())
-        {
-            <section class="media-panel">
-                <span class="eyebrow">媒体资料</span>
-                <h3>可公开查看的附加资料</h3>
-                @if (visibleImages.Any())
-                {
-                    <div class="media-gallery" aria-label="图片资料">
-                        @foreach (var image in visibleImages)
-                        {
-                            <a class="media-thumb" href="@MediaUrl(image)" target="_blank" rel="noopener">
-                                <img src="@MediaUrl(image)" alt="@($"{Model.Entry.Title}图片资料")" loading="lazy" />
-                            </a>
-                        }
-                    </div>
-                }
-                @if (visibleVideos.Any() || visibleAudios.Any())
-                {
-                    <ul class="media-link-list">
-                        @foreach (var video in visibleVideos)
-                        {
-                            <li>
-                                <a class="media-link-card" href="@MediaUrl(video)" target="_blank" rel="noopener">
-                                    <span class="media-kind">视频</span>
-                                    <span>@(string.IsNullOrWhiteSpace(MediaFileName(video)) ? "视频资料" : MediaFileName(video))</span>
-                                </a>
-                            </li>
-                        }
-                        @foreach (var audio in visibleAudios)
-                        {
-                            <li>
-                                <a class="media-link-card" href="@MediaUrl(audio)" target="_blank" rel="noopener">
-                                    <span class="media-kind">音频</span>
-                                    <span>@(string.IsNullOrWhiteSpace(MediaFileName(audio)) ? "音频资料" : MediaFileName(audio))</span>
-                                </a>
-                            </li>
-                        }
-                    </ul>
-                }
-            </section>
-        }
+        <section class="section-panel">
+            <span class="eyebrow">补充入口</span>
+            <h2>我要补充或纠错</h2>
+            <p>如果你知道更准确的流程、材料、禁忌、地区差异或来源线索，可以直接关联本词条提交。</p>
+            <a class="button-primary" asp-controller="Submit" asp-action="Create" asp-route-entryId="@Model.Entry.Id">补充这条词条</a>
+        </section>
 
         <section class="section-panel">
-            <span class="eyebrow">继续查看</span>
-            <h3>浏览相关内容</h3>
+            <span class="eyebrow">相关推荐</span>
+            <h2>继续查看</h2>
+            @if (Model.RelatedEntries.Count == 0)
+            {
+                <p class="muted">暂无相关推荐。</p>
+            }
+            else
+            {
+                <ul class="compact-list link-list">
+                    @foreach (var entry in Model.RelatedEntries)
+                    {
+                        <li>
+                            <a asp-controller="Entries" asp-action="Details" asp-route-slug="@entry.Slug">@entry.Title</a>
+                        </li>
+                    }
+                </ul>
+            }
+        </section>
+
+        <section class="section-panel">
+            <span class="eyebrow">相关入口</span>
             <div class="utility-actions">
-                <a class="button-secondary" asp-controller="Regions" asp-action="Details" asp-route-id="@Model.Region.Id">查看地区页</a>
-                <a class="button-secondary" asp-controller="Festivals" asp-action="Details" asp-route-id="@Model.Festival.Id">查看同节令内容</a>
-                <a class="button-primary" asp-controller="Submit" asp-action="Create" asp-route-entryId="@Model.Entry.Id">补充或纠错此条目</a>
+                <a class="button-secondary" asp-controller="Places" asp-action="Details" asp-route-slug="@Model.Region.Slug">地区页</a>
+                <a class="button-secondary" asp-controller="Festivals" asp-action="Details" asp-route-slug="@Model.Festival.Slug">节日页</a>
             </div>
         </section>
     </aside>

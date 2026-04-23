@@ -4,6 +4,7 @@ public sealed class SourceEvidenceEntity
 {
     public int Id { get; set; }
     public string SourceType { get; set; } = string.Empty;
+    public string SourceLevel { get; set; } = "unverified";
     public string Title { get; set; } = string.Empty;
     public string Contributor { get; set; } = string.Empty;
     public string RecordedAt { get; set; } = string.Empty;

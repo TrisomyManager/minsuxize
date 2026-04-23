@@ -9,6 +9,9 @@ public sealed class SubmitEntryViewModel
     public int? RelatedEntryId { get; set; }
     public string? RelatedEntryTitle { get; set; }
 
+    [Display(Name = "内容类型")]
+    public string ContentType { get; set; } = "ritual";
+
     [Required(ErrorMessage = "请填写反馈人")]
     [Display(Name = "反馈人")]
     public string ContributorName { get; set; } = string.Empty;
@@ -70,30 +73,11 @@ public sealed class SubmitEntryViewModel
 
     public IReadOnlyList<SelectListItem> Regions { get; set; } = [];
     public IReadOnlyList<SelectListItem> Festivals { get; set; } = [];
+    public IReadOnlyList<SelectListItem> ContentTypes { get; set; } = [];
 
-    public List<string> GetImagesList() =>
-        string.IsNullOrWhiteSpace(ImagesInput)
-            ? []
-            : ImagesInput.Split(',', StringSplitOptions.RemoveEmptyEntries)
-                .Select(value => value.Trim())
-                .Where(value => !string.IsNullOrWhiteSpace(value))
-                .ToList();
-
-    public List<string> GetVideosList() =>
-        string.IsNullOrWhiteSpace(VideosInput)
-            ? []
-            : VideosInput.Split(',', StringSplitOptions.RemoveEmptyEntries)
-                .Select(value => value.Trim())
-                .Where(value => !string.IsNullOrWhiteSpace(value))
-                .ToList();
-
-    public List<string> GetAudiosList() =>
-        string.IsNullOrWhiteSpace(AudiosInput)
-            ? []
-            : AudiosInput.Split(',', StringSplitOptions.RemoveEmptyEntries)
-                .Select(value => value.Trim())
-                .Where(value => !string.IsNullOrWhiteSpace(value))
-                .ToList();
+    public List<string> GetImagesList() => SplitLinks(ImagesInput);
+    public List<string> GetVideosList() => SplitLinks(VideosInput);
+    public List<string> GetAudiosList() => SplitLinks(AudiosInput);
 
     public LocationInfo? GetLocationInfo()
     {
@@ -110,4 +94,11 @@ public sealed class SubmitEntryViewModel
 
         return null;
     }
+
+    private static List<string> SplitLinks(string? input) =>
+        string.IsNullOrWhiteSpace(input)
+            ? []
+            : input.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+                .Where(value => !string.IsNullOrWhiteSpace(value))
+                .ToList();
 }

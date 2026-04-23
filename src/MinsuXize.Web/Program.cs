@@ -26,6 +26,7 @@ builder.Services.Configure<ForwardedHeadersOptions>(options =>
     options.KnownProxies.Clear();
 });
 builder.Services.Configure<AdminAuthOptions>(builder.Configuration.GetSection("AdminAuth"));
+builder.Services.Configure<SiteOptions>(builder.Configuration.GetSection("Site"));
 builder.Services
     .AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
     .AddCookie(options =>
@@ -51,6 +52,7 @@ using (var scope = app.Services.CreateScope())
 {
     var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
     dbContext.Database.EnsureCreated();
+    DbSchemaMigrator.EnsureKnowledgeSchema(dbContext);
     DbSeeder.Seed(dbContext);
 }
 
@@ -61,6 +63,29 @@ if (!app.Environment.IsDevelopment())
 }
 
 app.UseForwardedHeaders();
+
+var siteOptions = app.Services.GetRequiredService<Microsoft.Extensions.Options.IOptions<SiteOptions>>().Value;
+if (siteOptions.PreferWww && Uri.TryCreate(siteOptions.BaseUrl, UriKind.Absolute, out var canonicalBaseUri))
+{
+    app.Use(async (context, next) =>
+    {
+        var requestHost = context.Request.Host.Host;
+        if (!string.Equals(requestHost, canonicalBaseUri.Host, StringComparison.OrdinalIgnoreCase))
+        {
+            var target = new UriBuilder(canonicalBaseUri.Scheme, canonicalBaseUri.Host)
+            {
+                Path = context.Request.PathBase.Add(context.Request.Path).Value,
+                Query = context.Request.QueryString.HasValue
+                    ? context.Request.QueryString.Value!.TrimStart('?')
+                    : string.Empty
+            };
+            context.Response.Redirect(target.Uri.ToString(), permanent: true);
+            return;
+        }
+
+        await next();
+    });
+}
 
 app.Use(async (context, next) =>
 {

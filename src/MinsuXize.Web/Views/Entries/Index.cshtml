@@ -1,9 +1,14 @@
 @model MinsuXize.Web.ViewModels.EntrySearchViewModel
 
 <section class="page-header">
-    <span class="eyebrow">习俗浏览</span>
-    <h1>习俗列表</h1>
-    <p>这里收录的是已经整理出的地方习俗记录。你可以按关键词、地区、节令或存续状态筛选，再进入详情页继续查看。</p>
+    <nav class="breadcrumb-line" aria-label="面包屑">
+        <a asp-controller="Home" asp-action="Index">首页</a>
+        <span>/</span>
+        <span>@(Model.ContentType == "ritual" ? "仪式" : "词条")</span>
+    </nav>
+    <span class="eyebrow">结构化词条</span>
+    <h1>@(Model.ContentType == "ritual" ? "仪式列表" : "民俗词条")</h1>
+    <p>按地区、内容类型、节日和标签筛选。列表只显示摘要和关键元信息，详情页保留流程、地区差异、FAQ 和来源。</p>
     @if (!string.IsNullOrWhiteSpace(Model.SelectedRegionLabel))
     {
         <div class="meta-list">
@@ -15,8 +20,8 @@
 <section class="content-section search-shell">
     <form asp-action="Index" method="get" class="search-form">
         <div class="search-main-row">
-            <input class="search-keyword-input" type="text" name="keyword" value="@Model.Keyword" placeholder="搜索做法、供品、禁忌、地点或口述关键词" />
-            <button type="submit" class="search-submit-button">查看结果</button>
+            <input class="search-keyword-input" type="search" name="keyword" value="@Model.Keyword" placeholder="搜索做法、供品、禁忌、地区、来源或口述关键词" />
+            <button type="submit" class="search-submit-button">筛选</button>
         </div>
         <div class="search-filter-row">
             <select name="regionId" class="search-select-input">
@@ -26,16 +31,23 @@
                     <option value="@option.Value" selected="@option.Selected">@option.Text</option>
                 }
             </select>
+            <select name="contentType" class="search-select-input">
+                <option value="">不限类型</option>
+                @foreach (var option in Model.ContentTypeOptions)
+                {
+                    <option value="@option.Value" selected="@option.Selected">@option.Text</option>
+                }
+            </select>
             <select name="festivalId" class="search-select-input">
-                <option value="">不限节令</option>
+                <option value="">不限节日</option>
                 @foreach (var option in Model.FestivalOptions)
                 {
                     <option value="@option.Value" selected="@option.Selected">@option.Text</option>
                 }
             </select>
-            <select name="inheritanceStatus" class="search-select-input">
-                <option value="">不限存续状态</option>
-                @foreach (var option in Model.InheritanceStatusOptions)
+            <select name="tag" class="search-select-input">
+                <option value="">不限标签</option>
+                @foreach (var option in Model.TagOptions)
                 {
                     <option value="@option.Value" selected="@option.Selected">@option.Text</option>
                 }
@@ -46,16 +58,15 @@
 
 <section class="content-section">
     <div class="section-heading">
-        <span class="eyebrow">搜索结果</span>
+        <span class="eyebrow">检索结果</span>
         <h2>共找到 @Model.Entries.Count 条记录</h2>
-        <p>列表页会先给出地点、节令、摘要和存续状态，方便你判断是否值得点进详情页继续看。</p>
     </div>
 
     @if (Model.Entries.Count == 0)
     {
         <div class="empty-state">
             <h3>暂时没有匹配结果</h3>
-            <p>可以试着缩短关键词、放宽筛选条件，或者直接提交一条新的补充线索。</p>
+            <p>可以缩短关键词、放宽筛选条件，或提交一条新的补充线索。</p>
             <div class="utility-actions">
                 <a class="button-secondary" asp-controller="Submit" asp-action="Create">提交补充</a>
                 <a class="button-primary" asp-controller="Home" asp-action="Index">返回首页</a>
@@ -73,17 +84,24 @@
                 <article class="surface-card">
                     <div class="surface-link-head">
                         <div>
-                            <span class="footer-label">@festival.Name</span>
+                            <span class="footer-label">@entry.ContentType</span>
                             <h3>@entry.Title</h3>
                         </div>
-                        <span class="pill">@entry.InheritanceStatus</span>
+                        <span class="pill">@entry.ReviewStatus</span>
                     </div>
                     <p>@entry.Summary</p>
                     <div class="meta-list">
                         <span>@region.FullPath</span>
-                        <span>@festival.LunarLabel</span>
+                        <span>@festival.Name</span>
+                        <span>置信度 @entry.ConfidenceLevel</span>
                     </div>
-                    <a class="text-link" asp-action="Details" asp-route-id="@entry.Id">查看习俗详情</a>
+                    <div class="chip-row">
+                        @foreach (var tag in entry.Tags.Take(5))
+                        {
+                            <a class="pill" asp-action="Index" asp-route-tag="@tag">@tag</a>
+                        }
+                    </div>
+                    <a class="text-link" asp-action="Details" asp-route-slug="@entry.Slug">查看详情</a>
                 </article>
             }
         </div>

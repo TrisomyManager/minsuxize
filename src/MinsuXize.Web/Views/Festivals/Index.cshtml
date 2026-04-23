@@ -1,36 +1,36 @@
 @model IReadOnlyList<MinsuXize.Web.Models.Festival>
-@{
-    ViewData["Title"] = "节日目录";
-}
 
 <section class="page-header">
-    <span class="eyebrow">节日目录</span>
-    <h1>按节日与时间节点组织民俗内容</h1>
-    <p>节日目录用于横向比较：同一节日、同一节气或同一时间节点，在不同地区究竟如何被实践、讲述和传承。</p>
-    <div class="meta-list">
-        <span>当前收录节日与时间节点：@Model.Count 个</span>
-    </div>
+    <nav class="breadcrumb-line" aria-label="面包屑">
+        <a asp-controller="Home" asp-action="Index">首页</a>
+        <span>/</span>
+        <span>节日</span>
+    </nav>
+    <span class="eyebrow">Festivals</span>
+    <h1>按节日浏览</h1>
+    <p>从春节、清明、中元等时间节点进入，比较不同地区在同一节日下的仪式、材料和禁忌差异。</p>
 </section>
 
-<section class="content-section result-grid">
-    @foreach (var festival in Model)
-    {
-        <article class="surface-card">
-            <div class="surface-link-head">
-                <div>
-                    <span class="footer-label">@festival.Category</span>
-                    <h3>@festival.Name</h3>
+<section class="content-section">
+    <div class="result-grid">
+        @foreach (var festival in Model)
+        {
+            <article class="surface-card">
+                <span class="footer-label">@festival.Category</span>
+                <h2>@festival.Name</h2>
+                <p>@festival.Summary</p>
+                <div class="meta-list">
+                    <span>@festival.LunarLabel</span>
+                    <span>更新 @festival.UpdatedAt.ToLocalTime().ToString("yyyy-MM-dd")</span>
                 </div>
-                <span class="muted">@festival.LunarLabel</span>
-            </div>
-            <p>@festival.Summary</p>
-            <div class="pill-grid">
-                @foreach (var topic in festival.CoreTopics)
-                {
-                    <span class="pill">@topic</span>
-                }
-            </div>
-            <a class="text-link" asp-action="Details" asp-route-id="@festival.Id">查看节日条目</a>
-        </article>
-    }
+                <div class="chip-row">
+                    @foreach (var topic in festival.CoreTopics.Take(5))
+                    {
+                        <span class="pill">@topic</span>
+                    }
+                </div>
+                <a class="text-link" asp-action="Details" asp-route-slug="@festival.Slug">查看节日页</a>
+            </article>
+        }
+    </div>
 </section>
